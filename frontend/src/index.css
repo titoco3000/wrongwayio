@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Feather Bold";
+  src: url("/fonts/feather-bold.ttf") format("truetype");
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Feather Bold", ui-rounded, system-ui, sans-serif;
+  --color-ink: #111827;
+  --color-gray-soft: #e5e7eb;
+  --color-gray-mid: #9ca3af;
+  --color-gray-dark: #4b5563;
+  --color-paper: #ffffff;
+  --color-brand-red: #ef4444;
+  --color-brand-red-dark: #b91c1c;
+  --color-brand-blue: #3b82f6;
+  --color-brand-blue-dark: #1d4ed8;
+}
+
+.dark {
+  --color-ink: #f3f4f6;
+  --color-paper: #111827;
+  --color-gray-soft: #1f2937;
+  --color-gray-mid: #6b7280;
+  --color-gray-dark: #9ca3af;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-paper);
+}
+
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.slide-in {
+  animation: slide-in 300ms ease-out;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-mid) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-mid);
+  border-radius: 9999px;
+}

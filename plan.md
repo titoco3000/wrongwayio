@@ -49,30 +49,6 @@ Randomly, something points to the right or to the left, or an obvious question "
 * Unlabeled Button: click one out of two identical buttons that are side by side
 * Audio: speak "left"/"right"
 
-# Development steps
-
-1. basic UI bulding blocks
-
-- vite + react + tailwind app in /frontend
-- defines global styles (main color scheme in gray/black/white/red/blue, font)
-- splash screen with icon fading to page
-- PagesStack
-- StackPage: page with either a back arrow (remove itself from the stack) or close button (remove all pages from the stack)
-- ButtonsRow & Button - onSubmit in ButtonsRow with 'value' as argument
-- Select & Option - onChange in Select with 'value' as argument
-- Container - receives header, body and footer. All children are placed inside an element with max width, centered. header and footer always visible, fills device height. body fills in remaining space, scroll auto
-- SpeechBubble - comic-book-style
-- Demo page 
-
-2. Game
-
-- generic MiniGame component, with onEnd
-- component to display the direction the user is supposed to press
-- Image reaction game: Labeled Button
-- StackPage with button "play round" - closeable page with game.
-
-
-
 
 
 
