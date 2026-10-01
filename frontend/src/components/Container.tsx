@@ -14,7 +14,7 @@ const inner = 'mx-auto w-full max-w-xl'
  */
 export default function Container({ header, body, footer }: Props) {
   return (
-    <div className="slide-in fixed inset-0 flex flex-col bg-paper text-ink">
+    <div className="fixed inset-0 flex flex-col bg-paper text-ink">
       {header && (
         <header className="shrink-0 border-b-2 border-gray-soft">
           <div className={inner}>{header}</div>

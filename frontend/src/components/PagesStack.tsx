@@ -1,6 +1,8 @@
-import { Fragment, createContext, useCallback, useEffect, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useEffect, useContext, useMemo, useState, type ReactNode } from 'react'
 
-type Entry = { id: number; page: ReactNode }
+type Entry = { id: number; page: ReactNode; leftAt?: number }
+
+const EXIT_MS = 300
 
 type StackApi = {
   push: (page: ReactNode) => void
@@ -31,26 +33,35 @@ export default function PagesStack({ initial, empty = null, onEmpty }: Props) {
   const [entries, setEntries] = useState<Entry[]>(() => [{ id: nextId++, page: initial }])
 
   const push = useCallback((page: ReactNode) => setEntries((e) => [...e, { id: nextId++, page }]), [])
-  const pop = useCallback(() => setEntries((e) => e.slice(0, -1)), [])
-  const close = useCallback(() => setEntries([]), [])
+
+  // mark entries as leaving so they animate out, then drop them once the animation is over
+  const leave = useCallback((all: boolean) => {
+    const now = Date.now()
+    setEntries((e) => {
+      if (all) return e.map((x) => (x.leftAt ? x : { ...x, leftAt: now }))
+      const i = e.findLastIndex((x) => !x.leftAt)
+      return i < 0 ? e : e.map((x, j) => (j === i ? { ...x, leftAt: now } : x))
+    })
+    setTimeout(() => setEntries((e) => e.filter((x) => !x.leftAt || Date.now() - x.leftAt < EXIT_MS)), EXIT_MS)
+  }, [])
+  const pop = useCallback(() => leave(false), [leave])
+  const close = useCallback(() => leave(true), [leave])
   const api = useMemo(() => ({ push, pop, close }), [push, pop, close])
 
-  const top = entries[entries.length - 1]
+  const top = entries.findLast((x) => !x.leftAt)
 
   useEffect(() => {
-    if (!top) onEmpty?.()
-  }, [top, onEmpty])
+    if (entries.length === 0) onEmpty?.()
+  }, [entries.length, onEmpty])
 
   return (
     <StackContext.Provider value={api}>
-      {top
+      {entries.length > 0
         ? entries.map((e) => (
-            <Fragment key={e.id}>
-              {/* lower pages stay mounted underneath so slide-ins reveal them; inert keeps them out of focus/clicks */}
-              <div className="contents" inert={e !== top}>
-                {e.page}
-              </div>
-            </Fragment>
+            // lower and leaving pages stay mounted; inert keeps them out of focus/clicks
+            <div key={e.id} className={`fixed inset-0 ${e.leftAt ? 'slide-out' : 'slide-in'}`} inert={e !== top}>
+              {e.page}
+            </div>
           ))
         : empty}
     </StackContext.Provider>
