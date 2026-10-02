@@ -2,6 +2,7 @@ import { useState } from 'react'
 import PagesStack, { useStack } from '../components/general/PagesStack'
 import { games } from '../components/games/minigames'
 import StreakScreen from '../components/games/components/StreakScreen'
+import { useSession } from '../session/SessionProvider'
 import { DAILY_GAME_COUNT, dailyGameIndices, saveDailyResult } from '../daily/dailyChallenge'
 
 const LOOPS = 5
@@ -9,6 +10,7 @@ const LOOPS = 5
 /** Plays the day's minigames back to back; the first loss fails the challenge. */
 function Run({ record }: { record: boolean }) {
   const { close } = useStack()
+  const { user } = useSession()
   // fixed when the run starts, so it can't change if midnight passes mid-run
   const [order] = useState(() => dailyGameIndices(games.length))
   const [step, setStep] = useState(0)
@@ -18,7 +20,7 @@ function Run({ record }: { record: boolean }) {
   const [streak, setStreak] = useState<number | null>(null)
 
   const finish = (result: 'done' | 'failed') => {
-    const newStreak = record ? saveDailyResult(result) : 0
+    const newStreak = record ? saveDailyResult(user?.name ?? null, result) : 0
     if (record && result === 'done') setStreak(newStreak)
     else close()
   }

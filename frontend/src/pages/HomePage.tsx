@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Button } from '../components/general/ButtonsRow'
 import Container from '../components/general/Container'
 import { useStack } from '../components/general/PagesStack'
@@ -6,6 +6,7 @@ import Pigeon from '../components/general/Pigeon'
 import SpeechBubble from '../components/games/components/SpeechBubble'
 import ProfileButton from '../components/profile/ProfileButton'
 import ConfirmDialog from '../components/general/ConfirmDialog'
+import { useSession } from '../session/SessionProvider'
 import { loadDailyResult } from '../daily/dailyChallenge'
 import DailyChallengePage from './DailyChallengePage'
 import DemoPage from './DemoPage'
@@ -13,7 +14,11 @@ import GamePage from './GamePage'
 
 export default function HomePage() {
   const { push } = useStack()
-  const [dailyResult, setDailyResult] = useState(loadDailyResult)
+  const { user } = useSession()
+  // bumped when a challenge ends, to read the saved result again
+  const [dailyVersion, setDailyVersion] = useState(0)
+  // each user (or the guest) has their own daily result
+  const dailyResult = useMemo(() => loadDailyResult(user?.name ?? null), [user, dailyVersion])
   const [confirmRepeat, setConfirmRepeat] = useState(false)
   // null: closed; record: whether finishing saves the result
   const [daily, setDaily] = useState<{ record: boolean } | null>(null)
@@ -72,7 +77,7 @@ export default function HomePage() {
           record={daily.record}
           onClose={() => {
             setDaily(null)
-            setDailyResult(loadDailyResult())
+            setDailyVersion((v) => v + 1)
           }}
         />
       )}

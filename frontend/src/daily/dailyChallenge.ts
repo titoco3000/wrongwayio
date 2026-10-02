@@ -2,8 +2,29 @@ export const DAILY_GAME_COUNT = 5
 
 export type DailyResult = 'done' | 'failed'
 
-const STORAGE_KEY = 'dailyChallenge'
-const STREAK_KEY = 'dailyStreak'
+/** Whose data this is: a user's name, or null for a guest. */
+export type Owner = string | null
+
+const RESULT_PREFIX = 'dailyChallenge'
+const STREAK_PREFIX = 'dailyStreak'
+
+// users and the guest never share a key, whatever the user is called
+const ownerId = (owner: Owner) => (owner === null ? 'guest' : `user:${owner.trim().toLowerCase()}`)
+const resultKey = (owner: Owner) => `${RESULT_PREFIX}:${ownerId(owner)}`
+const streakKey = (owner: Owner) => `${STREAK_PREFIX}:${ownerId(owner)}`
+
+// before data was keyed by owner it lived under bare keys: that was the guest's
+try {
+  for (const prefix of [RESULT_PREFIX, STREAK_PREFIX]) {
+    const old = localStorage.getItem(prefix)
+    if (old === null) continue
+    const guestKey = `${prefix}:guest`
+    if (localStorage.getItem(guestKey) === null) localStorage.setItem(guestKey, old)
+    localStorage.removeItem(prefix)
+  }
+} catch {
+  // storage unavailable: nothing to migrate
+}
 
 /** Local calendar date as YYYY-MM-DD. */
 export const todayKey = (now = new Date()) =>
@@ -41,9 +62,9 @@ export function dailyGameIndices(gameCount: number, date = todayKey()): number[]
 }
 
 /** Today's saved result, or null if not played yet (or the saved one is from another day). */
-export function loadDailyResult(): DailyResult | null {
+export function loadDailyResult(owner: Owner): DailyResult | null {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
+    const saved = JSON.parse(localStorage.getItem(resultKey(owner)) ?? 'null')
     return saved?.date === todayKey() && (saved.result === 'done' || saved.result === 'failed') ? saved.result : null
   } catch {
     return null
@@ -53,9 +74,9 @@ export function loadDailyResult(): DailyResult | null {
 type Streak = { count: number; lastDate: string }
 
 /** Consecutive days with a won challenge, ending today or yesterday; 0 once a day was missed or lost. */
-export function loadStreak(): number {
+export function loadStreak(owner: Owner): number {
   try {
-    const saved: Streak | null = JSON.parse(localStorage.getItem(STREAK_KEY) ?? 'null')
+    const saved: Streak | null = JSON.parse(localStorage.getItem(streakKey(owner)) ?? 'null')
     return saved && (saved.lastDate === todayKey() || saved.lastDate === yesterdayKey()) ? saved.count : 0
   } catch {
     return 0
@@ -63,13 +84,35 @@ export function loadStreak(): number {
 }
 
 /** Saves today's result. Returns the streak after a win, so it can be shown right away. */
-export function saveDailyResult(result: DailyResult): number {
-  const streak = result === 'done' ? loadStreak() + 1 : 0
+export function saveDailyResult(owner: Owner, result: DailyResult): number {
+  const streak = result === 'done' ? loadStreak(owner) + 1 : 0
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: todayKey(), result }))
-    if (result === 'done') localStorage.setItem(STREAK_KEY, JSON.stringify({ count: streak, lastDate: todayKey() } satisfies Streak))
+    localStorage.setItem(resultKey(owner), JSON.stringify({ date: todayKey(), result }))
+    if (result === 'done') localStorage.setItem(streakKey(owner), JSON.stringify({ count: streak, lastDate: todayKey() } satisfies Streak))
   } catch {
     // storage unavailable: the result just isn't remembered
   }
   return streak
+}
+
+const hasData = (owner: Owner) => {
+  try {
+    return localStorage.getItem(resultKey(owner)) !== null || localStorage.getItem(streakKey(owner)) !== null
+  } catch {
+    return false
+  }
+}
+
+/** On login: a user with no data of their own takes over the guest's, which is then cleared. */
+export function adoptGuestData(userName: string) {
+  if (hasData(userName) || !hasData(null)) return
+  try {
+    for (const key of [resultKey, streakKey]) {
+      const guest = localStorage.getItem(key(null))
+      if (guest !== null) localStorage.setItem(key(userName), guest)
+      localStorage.removeItem(key(null))
+    }
+  } catch {
+    // storage unavailable: nothing to move
+  }
 }
