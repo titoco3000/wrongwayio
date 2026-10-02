@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { type ComponentType } from 'react'
-import type { Direction } from '../components/DirectionDisplay'
-import MiniGame from '../components/MiniGame'
-import ProgressBar from '../components/ProgressBar'
-import StackPage from '../components/StackPage'
-import StarBurst from '../components/StarBurst'
-import type { Point } from '../components/useClickOrigin'
+import type { Direction } from '../displays/DirectionDisplay'
+import MiniGame from '../MiniGame'
+import ProgressBar from '../../../general/ProgressBar'
+import StackPage from '../../../general/StackPage'
+import StarBurst from '../StarBurst'
+import type { Point } from '../../hooks/useClickOrigin'
 
 /** Shows the direction, then calls onDirectionSet. Remounted every round. */
 export type DisplayComponent = ComponentType<{ direction: Direction; onDirectionSet: (direction: Direction) => void }>

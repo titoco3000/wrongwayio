@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import ArrowLabeledGame from './ArrowLabeledGame'
 import ArrowUnlabeledGame from './ArrowUnlabeledGame'
-import type { GameProps } from './DirectionGame'
+import type { GameProps } from '../components/gameTypes/DirectionGame'
 import SwipeLabeledGame from './SwipeLabeledGame'
 import SwipeUnlabeledGame from './SwipeUnlabeledGame'
 

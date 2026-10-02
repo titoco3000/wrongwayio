@@ -1,6 +1,6 @@
-import { Button, ButtonsRow } from './ButtonsRow'
-import type { Direction } from './DirectionDisplay'
-import { useClickOrigin, type Point } from './useClickOrigin'
+import { Button, ButtonsRow } from '../../../general/ButtonsRow'
+import type { Direction } from '../displays/DirectionDisplay'
+import { useClickOrigin, type Point } from '../../hooks/useClickOrigin'
 
 type Props = {
   /** called with the direction the user picked and the center of the pressed button */

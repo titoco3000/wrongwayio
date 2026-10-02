@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import Pigeon from './Pigeon'
+import Pigeon from '../general/Pigeon'
 
 type Phase = 'show' | 'fade' | 'done'
 

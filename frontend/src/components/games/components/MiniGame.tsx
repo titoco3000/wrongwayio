@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react'
-import type { Direction } from './DirectionDisplay'
+import type { Direction } from './displays/DirectionDisplay'
 import ResultScreen from './ResultScreen'
 
 export type Round = {

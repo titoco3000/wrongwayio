@@ -1,6 +1,6 @@
-import { Button } from './ButtonsRow'
-import Container from './Container'
-import Pigeon from './Pigeon'
+import { Button } from '../../general/ButtonsRow'
+import Container from '../../general/Container'
+import Pigeon from '../../general/Pigeon'
 
 type Props = {
   won: boolean

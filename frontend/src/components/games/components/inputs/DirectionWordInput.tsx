@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Button, ButtonsRow } from './ButtonsRow'
-import type { Direction } from './DirectionDisplay'
-import { useClickOrigin, type Point } from './useClickOrigin'
+import { Button, ButtonsRow } from '../../../general/ButtonsRow'
+import type { Direction } from '../displays/DirectionDisplay'
+import { useClickOrigin, type Point } from '../../hooks/useClickOrigin'
 
 const flip = () => Math.random() < 0.5
 

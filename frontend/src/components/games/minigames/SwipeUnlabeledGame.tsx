@@ -1,6 +1,6 @@
-import BallDirectionDisplay from '../components/BallDirectionDisplay'
-import DirectionButtonsInput from '../components/DirectionButtonsInput'
-import DirectionGame, { type GameProps } from './DirectionGame'
+import BallDirectionDisplay from '../components/displays/BallDirectionDisplay'
+import DirectionButtonsInput from '../components/inputs/DirectionButtonsInput'
+import DirectionGame, { type GameProps } from '../components/gameTypes/DirectionGame'
 
 /** Movement reaction: ball swipe, press the unlabeled button on its side */
 export default function SwipeUnlabeledGame(props: GameProps) {

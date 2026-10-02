@@ -1,5 +1,5 @@
-import PagesStack from './components/PagesStack'
-import Splash from './components/Splash'
+import PagesStack from './components/general/PagesStack'
+import Splash from './components/app/Splash'
 import HomePage from './pages/HomePage'
 
 export default function App() {

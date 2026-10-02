@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import PagesStack, { useStack } from '../components/PagesStack'
-import StackPage from '../components/StackPage'
-import { games } from '../games'
+import PagesStack, { useStack } from '../components/general/PagesStack'
+import StackPage from '../components/general/StackPage'
+import { games } from '../components/games/minigames'
 
 const LOOPS = 5
 
