@@ -1,18 +1,16 @@
 import type { ComponentType } from 'react'
 import ArrowLabeledGame from './ArrowLabeledGame'
-import ArrowUnlabeledGame from './ArrowUnlabeledGame'
-import type { GameProps } from '../components/gameTypes/DirectionGame'
+import type { GameProps } from '../components/GameRound'
 import SwipeLabeledGame from './SwipeLabeledGame'
 import ArrowTypingGame from './ArrowTypingGame'
 import SwipeTypingGame from './SwipeTypingGame'
-import SwipeUnlabeledGame from './SwipeUnlabeledGame'
+import WordArrowGame from './WordArrowGame'
 
 /** Shown on the games page as numbered squares, in this order. */
 export const games: { name: string; Component: ComponentType<GameProps> }[] = [
   { name: 'Arrow, labeled buttons', Component: ArrowLabeledGame },
-  { name: 'Arrow, unlabeled buttons', Component: ArrowUnlabeledGame },
   { name: 'Swipe, labeled buttons', Component: SwipeLabeledGame },
-  { name: 'Swipe, unlabeled buttons', Component: SwipeUnlabeledGame },
   { name: 'Arrow, typing', Component: ArrowTypingGame },
   { name: 'Swipe, typing', Component: SwipeTypingGame },
+  { name: 'Word, arrow buttons', Component: WordArrowGame },
 ]

@@ -7,14 +7,18 @@ type Props = {
   onSubmit: (direction: Direction, origin: Point) => void
 }
 
-/** Two identical, unlabeled buttons side by side: the left one means left, the right one right. Pops up from the bottom on mount. */
-export default function DirectionButtonsInput({ onSubmit }: Props) {
+const ARROWS: Record<Direction, string> = { left: '←', right: '→' }
+
+/** Two buttons side by side, each with an arrow: the left one points left, the right one right. Pops up from the bottom on mount. */
+export default function DirectionArrowInput({ onSubmit }: Props) {
   const { origin, onClick } = useClickOrigin()
   return (
     <div className="pop-up p-4">
       <ButtonsRow onSubmit={(v) => onSubmit(v as Direction, origin.current)}>
         {(['left', 'right'] as const).map((d) => (
-          <Button key={d} value={d} variant="neutral" aria-label={d} className="py-12!" onClick={onClick} />
+          <Button key={d} value={d} variant="neutral" aria-label={d} className="py-8! text-5xl" onClick={onClick}>
+            {ARROWS[d]}
+          </Button>
         ))}
       </ButtonsRow>
     </div>

@@ -1,6 +1,7 @@
 import DirectionDisplay from '../components/displays/DirectionDisplay'
 import DirectionTypingInput from '../components/inputs/DirectionTypingInput'
-import DirectionGame, { type GameProps } from '../components/gameTypes/DirectionGame'
+import DirectionGame from '../components/gameTypes/DirectionGame'
+import type { GameProps } from '../components/GameRound'
 
 /** Image reaction: arrow, type the word of its direction */
 export default function ArrowTypingGame(props: GameProps) {
