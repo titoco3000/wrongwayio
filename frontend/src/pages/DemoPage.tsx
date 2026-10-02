@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import CollapsiblePanel from '../components/CollapsiblePanel'
 import { Button, ButtonsRow } from '../components/ButtonsRow'
 import PagesStack, { useStack } from '../components/PagesStack'
 import Pigeon from '../components/Pigeon'
@@ -98,6 +99,15 @@ function DemoBody() {
         <SpeechBubble side="left">Tail on the left.</SpeechBubble>
         <SpeechBubble side="right">Tail on the right.</SpeechBubble>
         <div className="h-4" />
+      </Section>
+
+      <Section title="CollapsiblePanel">
+        <CollapsiblePanel header="Short panel">Just one line.</CollapsiblePanel>
+        <CollapsiblePanel header="Long panel (same duration)">
+          {Array.from({ length: 15 }, (_, i) => (
+            <p key={i}>Line {i + 1}</p>
+          ))}
+        </CollapsiblePanel>
       </Section>
 
       <Section title="Container">
