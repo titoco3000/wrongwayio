@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: "Feather Bold";
-  src: url("/fonts/feather-bold.ttf") format("truetype");
+  src: url("/fonts/feather-bold/feather-bold.ttf") format("truetype");
   font-display: swap;
 }
 
