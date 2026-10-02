@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { type ComponentType } from 'react'
 import type { Direction } from '../displays/DirectionDisplay'
 import MiniGame from '../MiniGame'
+import type { ChallengeProgress } from '../ResultScreen'
 import ProgressBar from '../../../general/ProgressBar'
 import StackPage from '../../../general/StackPage'
 import StarBurst from '../StarBurst'
@@ -18,14 +19,16 @@ export type InputComponent = ComponentType<{ onSubmit: (direction: Direction, or
 export type GameProps = {
   loops: number
   onEnd: (won: boolean) => void
+  /** set when the game is one of several in a row: shown on the win screen */
+  progress?: ChallengeProgress
 }
 
 type Props = GameProps & { Display: DisplayComponent; Input: InputComponent }
 
 /** Generic reaction game: pick a display and an input. Renders a closeable page. */
-export default function DirectionGame({ loops, onEnd, Display, Input }: Props) {
+export default function DirectionGame({ loops, onEnd, progress, Display, Input }: Props) {
   return (
-    <MiniGame loops={loops} onEnd={onEnd}>
+    <MiniGame loops={loops} onEnd={onEnd} progress={progress}>
       {({ direction, index, loops, answer }) => (
         <RoundPage Display={Display} Input={Input} direction={direction} index={index} loops={loops} answer={answer} />
       )}

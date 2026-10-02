@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
 import type { Direction } from './displays/DirectionDisplay'
-import ResultScreen from './ResultScreen'
+import ResultScreen, { type ChallengeProgress } from './ResultScreen'
 
 export type Round = {
   /** direction the user is supposed to answer with */
@@ -24,6 +24,8 @@ type Props = {
   loops: number
   /** called once, when the user continues from the win/lose screen */
   onEnd: (won: boolean) => void
+  /** shown on the default win screen */
+  progress?: ChallengeProgress
   /** renders one loop of the game */
   children: (round: Round) => ReactNode
   /** override the default screens: render any full-screen element (e.g. a Container) and call `onContinue` from it */
@@ -40,6 +42,7 @@ export default function MiniGame({
   loops,
   onEnd,
   children,
+  progress,
   winScreen,
   loseScreen,
   winDelayMs = 900,
@@ -76,7 +79,7 @@ export default function MiniGame({
   return (
     <>
       {children({ direction: directions[index], index, loops, answer })}
-      {result === 'won' && (winScreen ? winScreen({ onContinue }) : <ResultScreen won onContinue={onContinue} />)}
+      {result === 'won' && (winScreen ? winScreen({ onContinue }) : <ResultScreen won onContinue={onContinue} progress={progress} />)}
       {result === 'lost' && (loseScreen ? loseScreen({ onContinue }) : <ResultScreen won={false} onContinue={onContinue} />)}
     </>
   )
