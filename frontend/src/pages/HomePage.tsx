@@ -4,7 +4,7 @@ import Container from '../components/general/Container'
 import { useStack } from '../components/general/PagesStack'
 import Pigeon from '../components/general/Pigeon'
 import SpeechBubble from '../components/games/components/SpeechBubble'
-import ThemeToggle from '../components/general/ThemeToggle'
+import ProfileButton from '../components/profile/ProfileButton'
 import ConfirmDialog from '../components/general/ConfirmDialog'
 import { loadDailyResult } from '../daily/dailyChallenge'
 import DailyChallengePage from './DailyChallengePage'
@@ -25,7 +25,7 @@ export default function HomePage() {
         header={
           <div className="flex items-center justify-between px-4 py-3">
             <span className="text-xl">WrongWayio</span>
-            <ThemeToggle />
+            <ProfileButton />
           </div>
         }
         body={
