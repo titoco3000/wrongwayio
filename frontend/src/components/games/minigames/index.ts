@@ -3,6 +3,8 @@ import ArrowLabeledGame from './ArrowLabeledGame'
 import ArrowUnlabeledGame from './ArrowUnlabeledGame'
 import type { GameProps } from '../components/gameTypes/DirectionGame'
 import SwipeLabeledGame from './SwipeLabeledGame'
+import ArrowTypingGame from './ArrowTypingGame'
+import SwipeTypingGame from './SwipeTypingGame'
 import SwipeUnlabeledGame from './SwipeUnlabeledGame'
 
 /** Shown on the games page as numbered squares, in this order. */
@@ -11,4 +13,6 @@ export const games: { name: string; Component: ComponentType<GameProps> }[] = [
   { name: 'Arrow, unlabeled buttons', Component: ArrowUnlabeledGame },
   { name: 'Swipe, labeled buttons', Component: SwipeLabeledGame },
   { name: 'Swipe, unlabeled buttons', Component: SwipeUnlabeledGame },
+  { name: 'Arrow, typing', Component: ArrowTypingGame },
+  { name: 'Swipe, typing', Component: SwipeTypingGame },
 ]

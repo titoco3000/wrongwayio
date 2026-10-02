@@ -10,7 +10,10 @@ import type { Point } from '../../hooks/useClickOrigin'
 /** Shows the direction, then calls onDirectionSet. Remounted every round. */
 export type DisplayComponent = ComponentType<{ direction: Direction; onDirectionSet: (direction: Direction) => void }>
 /** Mounted once the direction is set; reports the user's answer and where it was pressed. */
-export type InputComponent = ComponentType<{ onSubmit: (direction: Direction, origin: Point) => void }>
+export type InputComponent = ComponentType<{ onSubmit: (direction: Direction, origin: Point) => void }> & {
+  /** Tailwind height class reserved in the footer, so the display doesn't shift when the input appears. Default h-40. */
+  footerHeight?: string
+}
 
 export type GameProps = {
   loops: number
@@ -59,7 +62,7 @@ function RoundPage({ Display, Input, direction, index, loops, answer }: RoundPro
           </div>
         }
         // fixed height so the arrow doesn't shift when the input appears
-        footer={<div className="h-40 overflow-hidden">{directionSet && <Input key={index} onSubmit={submit} />}</div>}
+        footer={<div className={`${Input.footerHeight ?? 'h-40'} overflow-hidden`}>{directionSet && <Input key={index} onSubmit={submit} />}</div>}
       />
       {bursts.map((b) => (
         <StarBurst key={b.id} x={b.x} y={b.y} onDone={() => setBursts((all) => all.filter((x) => x.id !== b.id))} />
