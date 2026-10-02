@@ -15,6 +15,8 @@ export type Round = {
    * A wrong answer loses the game; the last correct answer wins it.
    */
   answer: (value: Direction) => boolean
+  /** ends the game as lost right away, without the lose screen: for callers with their own (e.g. time ran out) */
+  endLost: () => void
 }
 
 export type ResultScreenProps = {
@@ -74,6 +76,12 @@ export default function MiniGame({
   }
 
   const ended = useRef(false)
+  const endLost = () => {
+    if (finished.current || ended.current) return
+    finished.current = true
+    ended.current = true
+    onEndRef.current(false)
+  }
   const onContinue = () => {
     if (ended.current || !result) return
     ended.current = true
@@ -82,7 +90,7 @@ export default function MiniGame({
 
   return (
     <>
-      {children({ direction: directions[index], index, completed: index + (allAnswered ? 1 : 0), loops, answer })}
+      {children({ direction: directions[index], index, completed: index + (allAnswered ? 1 : 0), loops, answer, endLost })}
       {result === 'won' && (winScreen ? winScreen({ onContinue }) : <ResultScreen won onContinue={onContinue} progress={progress} />)}
       {result === 'lost' && (loseScreen ? loseScreen({ onContinue }) : <ResultScreen won={false} onContinue={onContinue} />)}
     </>

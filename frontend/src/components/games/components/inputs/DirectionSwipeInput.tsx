@@ -23,6 +23,7 @@ type TrailBall = Point & { at: number }
 type Props = {
   /** called with the swipe direction and the point where the pointer was released */
   onSubmit: (direction: Direction, origin: Point) => void
+  disabled?: boolean
 }
 
 /**
@@ -30,10 +31,12 @@ type Props = {
  * blue trail. Releasing at least `swipeDistance()` to the left or right of the press point submits that direction;
  * vertical movement doesn't matter and a shorter swipe is ignored.
  */
-export default function DirectionSwipeInput({ onSubmit }: Props) {
+export default function DirectionSwipeInput({ onSubmit, disabled }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const onSubmitRef = useRef(onSubmit)
   onSubmitRef.current = onSubmit
+  const disabledRef = useRef(disabled)
+  disabledRef.current = disabled
 
   useEffect(() => {
     const canvas = canvasRef.current!
@@ -65,7 +68,7 @@ export default function DirectionSwipeInput({ onSubmit }: Props) {
     const point = (e: PointerEvent): Point => ({ x: e.clientX, y: e.clientY })
 
     const onDown = (e: PointerEvent) => {
-      if (submitted || gesture || !e.isPrimary || e.button !== 0) return
+      if (submitted || disabledRef.current || gesture || !e.isPrimary || e.button !== 0) return
       if (e.target instanceof Element && e.target.closest('button, [role="dialog"]')) return
       const p = point(e)
       gesture = { start: p, current: p, lastTrail: p, downAt: performance.now(), upAt: null }
@@ -156,3 +159,5 @@ export default function DirectionSwipeInput({ onSubmit }: Props) {
 
 /** Tailwind height class reserved for this input in the game footer. */
 DirectionSwipeInput.footerHeight = 'h-24'
+
+DirectionSwipeInput.timeoutSeconds = 4

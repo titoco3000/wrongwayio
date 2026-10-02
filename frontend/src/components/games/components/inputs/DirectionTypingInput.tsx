@@ -20,13 +20,14 @@ type Props = {
   onSubmit: (direction: Direction, origin: Point) => void
   /** accepted words per direction (lowercase). No word may be a prefix of another. */
   words?: DirectionWords
+  disabled?: boolean
 }
 
 /** QWERTY keyboard under a text field. Only letters that continue an allowed word are enabled; submits on completing one. */
 /** Tailwind height class reserved for this input in the game footer. */
 const footerHeight = 'h-72'
 
-export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Props) {
+export default function DirectionTypingInput({ onSubmit, words = ENGLISH, disabled }: Props) {
   const [typed, setTyped] = useState('')
   const { origin, onClick } = useClickOrigin()
   // the word was completed: keys are off while it bounces, then it is submitted
@@ -72,7 +73,7 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Prop
               <Button
                 key={letter}
                 variant="neutral"
-                disabled={locked || !enabled.has(letter)}
+                disabled={disabled || locked || !enabled.has(letter)}
                 className={`col-span-2 min-w-0! px-0! py-2! disabled:opacity-20! text-xl ${i > 0 && j === 0 ? 'col-start-2' : ''}`}
                 onClick={(e) => {
                   onClick(e)
@@ -86,7 +87,7 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Prop
               <Button
                 variant="neutral"
                 aria-label="Backspace"
-                disabled={locked || !typed}
+                disabled={disabled || locked || !typed}
                 className="col-span-4 min-w-0! px-0! py-2! disabled:opacity-20! text-xl"
                 onClick={() => setTyped(typed.slice(0, -1))}
               >
@@ -101,3 +102,5 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Prop
 }
 
 DirectionTypingInput.footerHeight = footerHeight
+
+DirectionTypingInput.timeoutSeconds = 8

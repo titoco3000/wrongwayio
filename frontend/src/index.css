@@ -172,3 +172,16 @@ body {
 .letter-bounce {
   animation: letter-bounce 350ms ease-in-out both;
 }
+
+/* rings for 25 x 120ms = 3s, then rests; same movement every time */
+@keyframes clock-alarm-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20% { transform: translateX(-2px) rotate(-8deg); }
+  40% { transform: translateX(2px) rotate(8deg); }
+  60% { transform: translateX(-2px) rotate(-6deg); }
+  80% { transform: translateX(2px) rotate(6deg); }
+}
+
+.clock-alarm-shake {
+  animation: clock-alarm-shake 100ms linear 25;
+}

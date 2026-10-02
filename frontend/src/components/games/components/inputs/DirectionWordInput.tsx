@@ -18,17 +18,18 @@ const randomButtons = (): { direction: Direction; variant: 'primary' | 'danger' 
 type Props = {
   /** called with the direction the user picked and the center of the pressed button */
   onSubmit: (direction: Direction, origin: Point) => void
+  disabled?: boolean
 }
 
 /** Large buttons labeled "left"/"right" in random order and random red/blue colors. Pops up from the bottom on mount. */
-export default function DirectionWordInput({ onSubmit }: Props) {
+export default function DirectionWordInput({ onSubmit, disabled }: Props) {
   const [order] = useState(randomButtons)
   const { origin, onClick } = useClickOrigin()
   return (
     <div className="pop-up p-4">
       <ButtonsRow onSubmit={(v) => onSubmit(v as Direction, origin.current)}>
         {order.map(({ direction, variant }) => (
-          <Button key={direction} value={direction} variant={variant} className="py-8! text-3xl" onClick={onClick}>
+          <Button key={direction} value={direction} variant={variant} disabled={disabled} className="py-8! text-3xl" onClick={onClick}>
             {direction}
           </Button>
         ))}
@@ -36,3 +37,5 @@ export default function DirectionWordInput({ onSubmit }: Props) {
     </div>
   )
 }
+
+DirectionWordInput.timeoutSeconds = 4
