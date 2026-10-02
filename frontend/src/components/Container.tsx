@@ -20,8 +20,8 @@ export default function Container({ header, body, footer }: Props) {
           <div className={inner}>{header}</div>
         </header>
       )}
-      <main className="min-h-0 flex-1 overflow-auto">
-        <div className={inner}>{body}</div>
+      <main className="flex min-h-0 flex-1 flex-col overflow-auto">
+        <div className={`${inner} flex flex-1 flex-col`}>{body}</div>
       </main>
       {footer && (
         <footer className="shrink-0 border-t-2 border-gray-soft">

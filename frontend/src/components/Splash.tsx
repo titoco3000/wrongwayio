@@ -25,7 +25,7 @@ export default function Splash({ children, duration = 1200 }: { children: ReactN
           }`}
         >
           <Pigeon className="size-32 animate-pulse" />
-          <span className="text-3xl text-white">WrongWayio</span>
+          <span className="text-3xl">WrongWayio</span>
         </div>
       )}
     </>

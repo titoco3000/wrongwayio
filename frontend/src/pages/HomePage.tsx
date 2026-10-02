@@ -5,6 +5,7 @@ import Pigeon from '../components/Pigeon'
 import SpeechBubble from '../components/SpeechBubble'
 import ThemeToggle from '../components/ThemeToggle'
 import DemoPage from './DemoPage'
+import GamePage from './GamePage'
 
 export default function HomePage() {
   const { push } = useStack()
@@ -25,8 +26,11 @@ export default function HomePage() {
         </div>
       }
       footer={
-        <div className="p-4">
-          <Button className="w-full" onClick={() => push(<DemoPage />)}>
+        <div className="flex flex-col gap-3 p-4">
+          <Button className="w-full" onClick={() => push(<GamePage />)}>
+            Game
+          </Button>
+          <Button className="w-full" variant="neutral" onClick={() => push(<DemoPage />)}>
             Component demo
           </Button>
         </div>
