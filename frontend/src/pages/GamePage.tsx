@@ -12,8 +12,8 @@ function RoundPage() {
   return (
     <LabeledButtonGame
       loops={LOOPS}
-      onEnd={(score, loops) => {
-        console.log(`Score: ${score}/${loops}`)
+      onEnd={(won) => {
+        console.log(won ? 'Won' : 'Lost')
         close()
       }}
     />

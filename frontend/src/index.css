@@ -101,3 +101,37 @@ body {
 .pop-up {
   animation: pop-up 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
+
+@keyframes star-fly {
+  from { transform: translate(0, 0) scale(0.4) rotate(0deg); opacity: 1; }
+  to { transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); opacity: 0; }
+}
+
+.star-fly {
+  animation-name: star-fly;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.fade-in {
+  animation: fade-in 300ms ease-out both;
+}
+
+/*
+ * slams down from a size that fills the screen with solid color, overshoots and settles.
+ * Scale shrinks roughly exponentially (steady perceived speed); it only covers the screen above ~scale 17.
+ */
+@keyframes star-stamp {
+  0% { transform: scale(70) rotate(-360deg);}
+  50% { transform: scale(0.7) rotate(0deg);}
+  100% { transform: scale(1) rotate(0deg);}
+}
+
+.star-stamp {
+  animation: star-stamp 800ms both;
+}
