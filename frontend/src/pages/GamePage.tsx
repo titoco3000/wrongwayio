@@ -1,16 +1,15 @@
 import { useState } from 'react'
-import { Button } from '../components/ButtonsRow'
 import PagesStack, { useStack } from '../components/PagesStack'
 import StackPage from '../components/StackPage'
-import LabeledButtonGame from '../games/LabeledButtonGame'
+import { games } from '../games'
 
 const LOOPS = 5
 
-/** Closeable game page; finishing the game closes it. */
-function RoundPage() {
+/** Closeable game page, in its own stack; finishing the game closes it. */
+function RoundPage({ Game }: { Game: (typeof games)[number]['Component'] }) {
   const { close } = useStack()
   return (
-    <LabeledButtonGame
+    <Game
       loops={LOOPS}
       onEnd={(won) => {
         console.log(won ? 'Won' : 'Lost')
@@ -21,17 +20,28 @@ function RoundPage() {
 }
 
 export default function GamePage() {
-  const [playing, setPlaying] = useState(false)
+  const [playing, setPlaying] = useState<number | null>(null)
+  const Game = playing === null ? null : games[playing].Component
   return (
     <StackPage
       nav="back"
-      header={<h1 className="text-xl">Game</h1>}
+      header={<h1 className="text-xl">Games</h1>}
       body={
         <div className="p-4">
-          <Button className="w-full" onClick={() => setPlaying(true)}>
-            Play round
-          </Button>
-          {playing && <PagesStack initial={<RoundPage />} onEmpty={() => setPlaying(false)} />}
+          <div className="grid grid-cols-3 gap-3">
+            {games.map((g, i) => (
+              <button
+                key={g.name}
+                type="button"
+                aria-label={`Game ${i + 1}: ${g.name}`}
+                onClick={() => setPlaying(i)}
+                className="aspect-square cursor-pointer rounded-2xl border-2 border-b-4 border-gray-mid text-4xl transition hover:bg-gray-soft active:translate-y-0.5 active:border-b-2"
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+          {Game && <PagesStack initial={<RoundPage Game={Game} />} onEmpty={() => setPlaying(null)} />}
         </div>
       }
     />

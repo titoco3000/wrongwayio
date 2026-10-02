@@ -135,3 +135,13 @@ body {
 .star-stamp {
   animation: star-stamp 800ms both;
 }
+
+@keyframes ball-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* the ball vanishes once the path is gone */
+.ball-fade {
+  animation: ball-fade 250ms ease-out both;
+}
