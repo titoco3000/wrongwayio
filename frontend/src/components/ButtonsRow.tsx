@@ -13,8 +13,8 @@ export function ButtonsRow({ onSubmit, children }: { onSubmit: (value: string) =
 type Variant = 'primary' | 'danger' | 'neutral'
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-brand-blue border-brand-blue-dark text-white',
-  danger: 'bg-brand-red border-brand-red-dark text-white',
+  primary: 'bg-brand-blue border-brand-blue-dark text-outline',
+  danger: 'bg-brand-red border-brand-red-dark text-outline',
   neutral: 'bg-paper border-gray-mid text-ink',
 }
 
