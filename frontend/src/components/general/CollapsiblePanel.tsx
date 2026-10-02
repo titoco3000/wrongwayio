@@ -1,3 +1,4 @@
+import { keySoundProps } from './keySound'
 import { useId, useState, type ReactNode } from 'react'
 
 type Props = {
@@ -17,7 +18,7 @@ export default function CollapsiblePanel({ header, children, defaultOpen = false
         type="button"
         aria-expanded={open}
         aria-controls={contentId}
-        onClick={() => setOpen((o) => !o)}
+        {...keySoundProps(() => setOpen((o) => !o))}
         className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-soft/60"
       >
         <span>{header}</span>

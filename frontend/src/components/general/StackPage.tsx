@@ -1,3 +1,4 @@
+import { keySoundProps } from './keySound'
 import type { ReactNode } from 'react'
 import Container from './Container'
 import { useStack } from './PagesStack'
@@ -21,7 +22,7 @@ export default function StackPage({ nav, header, body, footer }: Props) {
         <div className="flex items-center gap-3 px-4 py-3">
           <button
             type="button"
-            onClick={nav === 'back' ? pop : close}
+            {...keySoundProps(nav === 'back' ? pop : close)}
             aria-label={nav === 'back' ? 'Back' : 'Close'}
             className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-2xl text-gray-dark hover:bg-gray-soft"
           >

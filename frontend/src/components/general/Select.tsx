@@ -1,3 +1,4 @@
+import { keySoundProps } from './keySound'
 import { createContext, useContext, useState, type ReactNode } from 'react'
 
 type SelectApi = { selected: string | undefined; choose: (value: string) => void }
@@ -34,7 +35,7 @@ export function Option({ value, children }: { value: string; children: ReactNode
       type="button"
       role="radio"
       aria-checked={active}
-      onClick={() => ctx.choose(value)}
+      {...keySoundProps(() => ctx.choose(value))}
       className={`cursor-pointer rounded-2xl border-2 px-4 py-3 text-left transition ${
         active ? 'border-brand-blue bg-brand-blue/10 text-brand-blue-dark' : 'border-gray-soft hover:bg-gray-soft/60'
       }`}

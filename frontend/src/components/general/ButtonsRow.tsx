@@ -1,3 +1,4 @@
+import { keySoundProps } from './keySound'
 import { createContext, useContext, type ButtonHTMLAttributes, type ReactNode } from 'react'
 
 const RowContext = createContext<((value: string) => void) | null>(null)
@@ -30,10 +31,10 @@ export function Button({ value, variant = 'primary', className = '', onClick, ch
     <button
       type="button"
       {...rest}
-      onClick={(e) => {
+      {...keySoundProps((e) => {
         onClick?.(e)
         if (value !== undefined) onSubmit?.(value)
-      }}
+      })}
       className={`min-w-24 flex-1 cursor-pointer rounded-2xl border-2 border-b-4 px-5 py-3 uppercase tracking-wide transition active:translate-y-0.5 active:border-b-2 disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
     >
       {children}

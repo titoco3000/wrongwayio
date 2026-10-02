@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Button } from '../../../general/ButtonsRow'
 import type { Direction } from '../displays/DirectionDisplay'
 import { useClickOrigin, type Point } from '../../hooks/useClickOrigin'
-import { useKeySound } from '../../hooks/useKeySound'
 
 const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm']
 
@@ -24,7 +23,6 @@ const footerHeight = 'h-72'
 export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Props) {
   const [typed, setTyped] = useState('')
   const { origin, onClick } = useClickOrigin()
-  const playKey = useKeySound()
 
   const entries = (Object.keys(words) as Direction[]).flatMap((d) => words[d].map((word) => ({ direction: d, word })))
   const enabled = new Set(entries.filter((e) => e.word.startsWith(typed)).map((e) => e.word[typed.length]))
@@ -55,7 +53,6 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Prop
                 className={`col-span-2 min-w-0! px-0! py-2! disabled:opacity-20! text-xl ${i > 0 && j === 0 ? 'col-start-2' : ''}`}
                 onClick={(e) => {
                   onClick(e)
-                  playKey()
                   type(letter)
                 }}
               >

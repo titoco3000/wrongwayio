@@ -1,3 +1,4 @@
+import { keySoundProps } from '../components/general/keySound'
 import { useState } from 'react'
 import PagesStack, { useStack } from '../components/general/PagesStack'
 import StackPage from '../components/general/StackPage'
@@ -34,7 +35,7 @@ export default function GamePage() {
                 key={g.name}
                 type="button"
                 aria-label={`Game ${i + 1}: ${g.name}`}
-                onClick={() => setPlaying(i)}
+                {...keySoundProps(() => setPlaying(i))}
                 className="aspect-square cursor-pointer rounded-2xl border-2 border-b-4 border-gray-mid text-4xl transition hover:bg-gray-soft active:translate-y-0.5 active:border-b-2"
               >
                 {i + 1}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { keySoundProps } from './keySound'
 
 export default function ThemeToggle() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
@@ -17,7 +18,7 @@ export default function ThemeToggle() {
   return (
     <button
       type="button"
-      onClick={toggle}
+      {...keySoundProps(toggle)}
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-xl hover:bg-gray-soft"
     >
