@@ -1,7 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '../../../general/ButtonsRow'
 import type { Direction } from '../displays/DirectionDisplay'
 import { useClickOrigin, type Point } from '../../hooks/useClickOrigin'
+
+/** delay between letters of the final word's bounce, and the bounce itself, ms */
+const BOUNCE_STAGGER_MS = 90
+const BOUNCE_MS = 350
+/** pause after the bounce before submitting, ms */
+const SUBMIT_PAUSE_MS = 250
 
 const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm']
 
@@ -23,6 +29,10 @@ const footerHeight = 'h-72'
 export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Props) {
   const [typed, setTyped] = useState('')
   const { origin, onClick } = useClickOrigin()
+  // the word was completed: keys are off while it bounces, then it is submitted
+  const [locked, setLocked] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  useEffect(() => () => clearTimeout(timer.current), [])
 
   const entries = (Object.keys(words) as Direction[]).flatMap((d) => words[d].map((word) => ({ direction: d, word })))
   const enabled = new Set(entries.filter((e) => e.word.startsWith(typed)).map((e) => e.word[typed.length]))
@@ -30,8 +40,13 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Prop
   const type = (letter: string) => {
     const next = typed + letter
     const match = entries.find((e) => e.word === next)
-    if (match) onSubmit(match.direction, origin.current)
-    else setTyped(next)
+    setTyped(next)
+    if (!match) return
+    setLocked(true)
+    timer.current = setTimeout(
+      () => onSubmit(match.direction, origin.current),
+      (next.length - 1) * BOUNCE_STAGGER_MS + BOUNCE_MS + SUBMIT_PAUSE_MS,
+    )
   }
 
   return (
@@ -40,7 +55,15 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Prop
         aria-live="polite"
         className="flex h-16 items-center justify-center rounded-2xl  bg-paper text-3xl uppercase tracking-widest text-ink"
       >
-        {typed}
+        {[...typed].map((letter, i) => (
+          <span
+            key={i}
+            className={`inline-block ${locked ? 'letter-bounce' : ''}`}
+            style={locked ? { animationDelay: `${i * BOUNCE_STAGGER_MS}ms` } : undefined}
+          >
+            {letter}
+          </span>
+        ))}
       </div>
       <div className="flex flex-col gap-2">
         {ROWS.map((row, i) => (
@@ -49,7 +72,7 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Prop
               <Button
                 key={letter}
                 variant="neutral"
-                disabled={!enabled.has(letter)}
+                disabled={locked || !enabled.has(letter)}
                 className={`col-span-2 min-w-0! px-0! py-2! disabled:opacity-20! text-xl ${i > 0 && j === 0 ? 'col-start-2' : ''}`}
                 onClick={(e) => {
                   onClick(e)
@@ -63,7 +86,7 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH }: Prop
               <Button
                 variant="neutral"
                 aria-label="Backspace"
-                disabled={!typed}
+                disabled={locked || !typed}
                 className="col-span-4 min-w-0! px-0! py-2! disabled:opacity-20! text-xl"
                 onClick={() => setTyped(typed.slice(0, -1))}
               >

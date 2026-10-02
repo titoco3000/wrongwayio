@@ -7,6 +7,8 @@ export type Round = {
   direction: Direction
   /** 0-based index of the current loop */
   index: number
+  /** rounds answered correctly so far; reaches `loops` as soon as the last one is answered, before the win screen */
+  completed: number
   loops: number
   /**
    * Report the user's answer. Returns whether it was correct.
@@ -50,6 +52,7 @@ export default function MiniGame({
   const [directions] = useState(() => Array.from({ length: loops }, randomDirection))
   const [index, setIndex] = useState(0)
   const [result, setResult] = useState<'won' | 'lost' | null>(null)
+  const [allAnswered, setAllAnswered] = useState(false)
   const finished = useRef(false)
   const onEndRef = useRef(onEnd)
   onEndRef.current = onEnd
@@ -62,6 +65,7 @@ export default function MiniGame({
       setResult('lost')
     } else if (index + 1 >= loops) {
       finished.current = true
+      setAllAnswered(true)
       setTimeout(() => setResult('won'), winDelayMs)
     } else {
       setIndex(index + 1)
@@ -78,7 +82,7 @@ export default function MiniGame({
 
   return (
     <>
-      {children({ direction: directions[index], index, loops, answer })}
+      {children({ direction: directions[index], index, completed: index + (allAnswered ? 1 : 0), loops, answer })}
       {result === 'won' && (winScreen ? winScreen({ onContinue }) : <ResultScreen won onContinue={onContinue} progress={progress} />)}
       {result === 'lost' && (loseScreen ? loseScreen({ onContinue }) : <ResultScreen won={false} onContinue={onContinue} />)}
     </>

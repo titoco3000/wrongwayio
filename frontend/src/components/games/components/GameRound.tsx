@@ -32,20 +32,20 @@ type Props = GameProps & { Display: DisplayComponent; Input: InputComponent }
 export default function GameRound({ loops, onEnd, progress, Display, Input }: Props) {
   return (
     <MiniGame loops={loops} onEnd={onEnd} progress={progress}>
-      {({ direction, index, loops, answer }) => (
-        <RoundPage Display={Display} Input={Input} direction={direction} index={index} loops={loops} answer={answer} />
+      {({ direction, index, completed, loops, answer }) => (
+        <RoundPage Display={Display} Input={Input} direction={direction} index={index} completed={completed} loops={loops} answer={answer} />
       )}
     </MiniGame>
   )
 }
 
-type RoundProps = { Display: DisplayComponent; Input: InputComponent; direction: Direction; index: number; loops: number; answer: (value: Direction) => boolean }
+type RoundProps = { Display: DisplayComponent; Input: InputComponent; direction: Direction; index: number; completed: number; loops: number; answer: (value: Direction) => boolean }
 
 type Burst = Point & { id: number }
 
 let nextBurst = 0
 
-function RoundPage({ Display, Input, direction, index, loops, answer }: RoundProps) {
+function RoundPage({ Display, Input, direction, index, completed, loops, answer }: RoundProps) {
   // index of the round whose arrow finished spinning; derived so the page (and its progress bar) stays mounted between rounds
   const [setRound, setSetRound] = useState(-1)
   const directionSet = setRound === index
@@ -60,7 +60,7 @@ function RoundPage({ Display, Input, direction, index, loops, answer }: RoundPro
     <>
       <StackPage
         nav="close"
-        header={<ProgressBar value={index} max={loops} />}
+        header={<ProgressBar value={completed} max={loops} />}
         body={
           <div className="flex flex-1 items-center justify-center p-6">
             {/* keyed by round so the arrow spins again, even when the direction repeats */}
