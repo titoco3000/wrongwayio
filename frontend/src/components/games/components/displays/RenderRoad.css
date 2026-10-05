@@ -1,4 +1,5 @@
 .render-road {
+  --road-value: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -22,11 +23,16 @@
      cell it stands in. */
   --tilt: 88deg;
   /* The camera stands on the bottom edge of the middle row, centred. */
-  /* --road-value is -1..1. x is centred at 0 and moves ±70% of the grid width. */
-  --cam-x: calc(50% + 10% * var(--road-value));
-  /* y is 66% at 0 and 50% at ±1. */
-  --cam-y: calc(66% - 16% * abs(var(--road-value)));
+  /* --road-value is -1..1. The camera follows a quarter circle (not a
+     diamond): x = 50% + 10% sin, y = 50% + 16% cos, so y is 66% at 0 and 50% at
+     ±1. The grid is 5 cells wide and 3 tall, so 10% of its width (0.5
+     cell) ≈ 16% of its height (0.48 cell). The rotation itself stays linear. */
+  --cam-angle: calc(var(--road-value) * pi / 2);
+  --cam-x: calc(50% + 10% * sin(var(--cam-angle)));
+  --cam-y: calc(50% + 16% * cos(var(--cam-angle)));
   --road-rot: calc(-90deg * var(--road-value));
+  /* How back tiles stand up in their cell. */
+  --road-stand: translateY(50%) rotateX(-90deg) translateY(-50%);
   position: absolute;
   /* Put the camera point on the bottom-centre of the surface. */
   left: 50%;
@@ -43,6 +49,50 @@
   transform: translate(calc(-1 * var(--cam-x)), calc(-1 * var(--cam-y)))
     rotateX(var(--tilt)) rotateZ(var(--road-rot)) translateZ(100px)
     scale(2);
+}
+
+/* Top-down: no perspective, the whole board fits the surface and stays still,
+   back tiles lie flat, and the red arrow shows the camera instead. */
+.render-road--top .render-road__surface {
+  perspective: none;
+}
+
+.render-road--top .render-road__grid {
+  --road-stand: translateY(0);
+  top: 50%;
+  transform-origin: 50% 50%;
+  transform: translate(-50%, -50%) scale(calc(1 / var(--cols)));
+}
+
+.render-road__camera {
+  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* The camera heading is the opposite of the board rotation used above. */
+  transform-origin: var(--cam-x) var(--cam-y);
+  transform: rotate(calc(-1 * var(--road-rot)));
+}
+
+.render-road--top .render-road__camera {
+  display: block;
+}
+
+/* Tail on the camera point, tip pointing where the camera looks. */
+.render-road__arrow {
+  position: absolute;
+  left: var(--cam-x);
+  top: var(--cam-y);
+  width: calc(100% / var(--cols) * 0.4);
+  aspect-ratio: 1 / 2;
+  transform: translate(-50%, -100%);
+  fill: red;
+}
+
+.render-road__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .render-road__tile {
