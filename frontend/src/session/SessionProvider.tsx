@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, type User } from '../api'
 import { adoptGuestData } from '../daily/dailyChallenge'
+import { isNative, SITE_URL } from '../native/platform'
 
 const SESSION_KEY = 'session'
 
@@ -42,8 +43,8 @@ const write = (key: string, value: string | null) => {
 }
 
 /** Who is offering a premium pass, if the page was opened through a link made by `giftLink`. */
-export function giftFromUrl(): string | null {
-  const params = new URLSearchParams(window.location.search)
+export function giftFromUrl(url?: string): string | null {
+  const params = new URLSearchParams(url ? new URL(url).search : window.location.search)
   return params.get('premium') === 'gift' ? params.get('from') : null
 }
 
@@ -58,7 +59,7 @@ export function clearGiftFromUrl() {
 
 /** URL a friend opens to receive a premium pass from `fromName`. */
 export const giftLink = (fromName: string) =>
-  `${window.location.origin}${import.meta.env.BASE_URL}?${new URLSearchParams({ premium: 'gift', from: fromName })}`
+  `${isNative() ? SITE_URL : window.location.origin}${import.meta.env.BASE_URL}?${new URLSearchParams({ premium: 'gift', from: fromName })}`
 
 /** Keeps who is logged in. */
 export function SessionProvider({ children }: { children: ReactNode }) {

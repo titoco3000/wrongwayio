@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { onOpenedWithUrl } from './native/appEvents'
 import PagesStack from './components/general/PagesStack'
 import Splash from './components/app/Splash'
 import HomePage from './pages/HomePage'
@@ -7,7 +8,9 @@ import { clearGiftFromUrl, giftFromUrl, SessionProvider } from './session/Sessio
 
 export default function App() {
   // someone opened a gift link: the invite comes before the home screen
-  const [gift, setGift] = useState(giftFromUrl)
+  const [gift, setGift] = useState(() => giftFromUrl())
+  // the installed app gets links as events instead of page loads
+  useEffect(() => onOpenedWithUrl((url) => setGift(giftFromUrl(url) ?? null)), [])
   return (
     <Splash>
       <SessionProvider>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { api, GIFT_DAYS } from '../api'
+import { api, apiErrorMessage, GIFT_DAYS } from '../api'
 import { Button } from '../components/general/ButtonsRow'
 import Container from '../components/general/Container'
 import { useStack } from '../components/general/PagesStack'
@@ -20,15 +20,19 @@ export default function InvitePage({ from, onDone }: Props) {
   const { push } = useStack()
   const { user, loading, update } = useSession()
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [accepted, setAccepted] = useState(false)
   const ownLink = user?.name.toLowerCase() === from.toLowerCase()
 
   const accept = async () => {
     if (!user) return
     setBusy(true)
+    setError(null)
     try {
       update(await api.grantPremium(user.name, from, GIFT_DAYS))
       setAccepted(true)
+    } catch (e) {
+      setError(apiErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -84,6 +88,7 @@ export default function InvitePage({ from, onDone }: Props) {
           </h1>
           {!accepted && <p className="text-gray-dark">{GIFT_DAYS} days of premium access to right/left lessons.</p>}
           {accepted && user && <PremiumBanner user={user} />}
+          {error && <p role="alert" className="text-brand-red-dark">{error}</p>}
           <div className="w-full">{action}</div>
         </div>
       }

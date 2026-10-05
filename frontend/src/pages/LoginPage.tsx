@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { api, cleanName, isValidName, NAME_MAX, type User } from '../api'
+import { api, apiErrorMessage, cleanName, isValidName, NAME_MAX, type User } from '../api'
 import { Button } from '../components/general/ButtonsRow'
 import ConfirmDialog from '../components/general/ConfirmDialog'
 import { useStack } from '../components/general/PagesStack'
@@ -16,14 +16,18 @@ export default function LoginPage() {
   const [found, setFound] = useState<User | null>(null)
   const [offerCreate, setOfferCreate] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const lookUp = async () => {
     if (!isValidName(name)) return
     setBusy(true)
+    setError(null)
     try {
       const user = await api.getUser(name)
       if (user) setFound(user)
       else setOfferCreate(true)
+    } catch (e) {
+      setError(apiErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -59,6 +63,7 @@ export default function LoginPage() {
           ) : (
             <TextField label="Your name" value={name} onChange={setName} onSubmit={lookUp} submitLabel="Continue" maxLength={NAME_MAX} busy={busy} />
           )}
+          {error && <p role="alert" className="text-center text-brand-red-dark">{error}</p>}
           {offerCreate && (
             <ConfirmDialog
               title="Nobody has that name"

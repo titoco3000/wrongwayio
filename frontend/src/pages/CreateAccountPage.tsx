@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { api, ApiError, cleanName, isValidName, NAME_MAX, NAME_MIN } from '../api'
+import { api, ApiError, apiErrorMessage, cleanName, isValidName, NAME_MAX, NAME_MIN } from '../api'
 import { Button } from '../components/general/ButtonsRow'
 import { useStack } from '../components/general/PagesStack'
 import Pigeon from '../components/general/Pigeon'
@@ -28,6 +28,8 @@ export default function CreateAccountPage({ initialName = '' }: Props) {
     try {
       if (await api.getUser(name)) setError(`"${cleanName(name)}" is already taken.`)
       else setStep('confirm')
+    } catch (e) {
+      setError(apiErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -41,7 +43,7 @@ export default function CreateAccountPage({ initialName = '' }: Props) {
       setStep('done')
     } catch (e) {
       // someone may have taken the name since it was checked
-      setError(e instanceof ApiError && e.code === 'name-taken' ? `"${cleanName(name)}" was just taken.` : 'Something went wrong.')
+      setError(e instanceof ApiError && e.code === 'name-taken' ? `"${cleanName(name)}" was just taken.` : apiErrorMessage(e))
       setStep('name')
     } finally {
       setBusy(false)

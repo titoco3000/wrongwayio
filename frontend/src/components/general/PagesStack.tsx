@@ -1,5 +1,7 @@
 import { createContext, useCallback, useEffect, useContext, useMemo, useState, type ReactNode } from 'react'
 
+import { minimizeApp, onBackButton } from '../../native/appEvents'
+
 type Entry = { id: number; page: ReactNode; leftAt?: number }
 
 const EXIT_MS = 300
@@ -49,6 +51,17 @@ export default function PagesStack({ initial, empty = null, onEmpty }: Props) {
   const api = useMemo(() => ({ push, pop, close }), [push, pop, close])
 
   const top = entries.findLast((x) => !x.leftAt)
+
+  // Android back button: close the top page, or leave the app from the root page
+  const depth = entries.filter((x) => !x.leftAt).length
+  useEffect(
+    () =>
+      onBackButton(() => {
+        if (depth > 1) pop()
+        else void minimizeApp()
+      }),
+    [depth, pop],
+  )
 
   useEffect(() => {
     if (entries.length === 0) onEmpty?.()

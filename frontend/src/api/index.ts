@@ -11,7 +11,7 @@ export type User = {
   premiumFrom: string | null
 }
 
-export type ApiErrorCode = 'name-taken' | 'invalid-name' | 'not-found'
+export type ApiErrorCode = 'name-taken' | 'invalid-name' | 'not-found' | 'offline'
 
 export class ApiError extends Error {
   code: ApiErrorCode
@@ -54,7 +54,17 @@ const writeTable = (table: Table) => {
   }
 }
 
-const delay = () => new Promise((resolve) => setTimeout(resolve, LATENCY_MS))
+/** Waits like a network round trip, and fails like one when the device has no connection. */
+const delay = async () => {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new ApiError('offline')
+  await new Promise((resolve) => setTimeout(resolve, LATENCY_MS))
+}
+
+/** Text to show the user for a failed call. */
+export const apiErrorMessage = (e: unknown) =>
+  e instanceof ApiError && e.code === 'offline'
+    ? 'You are offline. Check your connection and try again.'
+    : 'Something went wrong. Try again.'
 
 export const api = {
   /** The user with that name, or null if there is none. */
