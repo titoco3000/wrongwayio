@@ -4,14 +4,20 @@ import back from '../../../../../assets/back.png'
 import './RenderRoad.css'
 
 export const ROAD_COLS = 5
-export const ROAD_ROWS = 3
+export const ROAD_ROWS = 5
 
-/** Turn value units per second at full slider speed. */
-const TURN_RATE = 1
-/** Smallest turn speed (slider units, 0..1) the road is ever allowed to have. */
-const MIN_SPEED = 0.3
+/** Degrees per second the heading changes at full slider. */
+const TURN_RATE = 60
+/** Forward speed, in main-tile widths per second. */
+const FORWARD_SPEED = 0.3
 /** Longest frame time (seconds) that is integrated. */
 const MAX_DT = 0.1
+/** Car start inside the main tile (0..1 each axis, y grows downwards). */
+const START_X = 0.5
+const START_Y = 1
+/** The main tile: centre tile (a road row and a back-tile row sit below). */
+const MAIN_COL = Math.floor(ROAD_COLS / 2)
+const MAIN_ROW = Math.floor(ROAD_ROWS / 2)
 
 export type RoadTile = {
   type: 'road' | 'back'
@@ -25,9 +31,11 @@ const R = (rotation: number): RoadTile => ({ type: 'road', rotation })
 const B = (rotation: number): RoadTile => ({ type: 'back', rotation })
 
 const DEFAULT_TILES: (RoadTile | undefined)[] = [
+  B(0),   B(0),   B(0),   B(0),   B(0),
   R(-90), R(0),   B(0),   R(0),   R(90),
   B(-90), R(-90), R(0),   R(90),  B(90),
   R(-90), R(180), R(180), R(180), R(90),
+  B(180), B(180), B(180), B(180), B(180),
 ]
 
 type Props = {
@@ -39,8 +47,9 @@ type Props = {
 }
 
 export default function RenderRoad({ tiles = DEFAULT_TILES }: Props) {
-  // The slider sets the turn speed (-1..1). The turn value (-1..1, which the
-  // CSS derives camera position and rotation from) is integrated every frame.
+  // The slider steers (-1..1). The car always drives forward inside the main
+  // tile; leaving it sideways resets it to the start and rotates its heading by
+  // 90deg, so it stays in the central tile while the world seems to move.
   const [speed, setSpeed] = useState(0)
   const [topDown, setTopDown] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -48,29 +57,39 @@ export default function RenderRoad({ tiles = DEFAULT_TILES }: Props) {
   speedRef.current = speed
 
   useEffect(() => {
-    let value = 0
+    let x = START_X
+    let y = START_Y
+    // Degrees, 0 = straight up, positive = towards the right.
+    let heading = 0
     let last = performance.now()
-    // Direction picked while the slider sits at exactly 0; kept until it moves.
-    let zeroDirection = 0
     let frame = requestAnimationFrame(function tick(now) {
       // Scale by elapsed time so speed is the same at any refresh rate; cap it
       // so a backgrounded tab doesn't jump on return.
       const dt = Math.min((now - last) / 1000, MAX_DT)
       last = now
-      const slider = speedRef.current
-      let direction = Math.sign(slider)
-      if (direction === 0) {
-        zeroDirection ||= Math.random() < 0.5 ? -1 : 1
-        direction = zeroDirection
-      } else {
-        zeroDirection = 0
+      heading += speedRef.current * TURN_RATE * dt
+      const rad = (heading * Math.PI) / 180
+      x += Math.sin(rad) * FORWARD_SPEED * dt
+      y -= Math.cos(rad) * FORWARD_SPEED * dt
+      y = Math.max(0.2, y)
+      if (y > 1) {
+        // Out through the bottom: mirror X and turn around.
+        heading += 180
+        x = 1 - x
+        y = START_Y
+      } else if (x > 1 || x < 0) {
+        // Out through the right turns the heading back left, and vice versa.
+        // The old Y becomes the new X (mirrored when leaving left), as the
+        // exit edge turns into the start edge.
+        const right = x > 1
+        heading -= right ? 90 : -90
+        x = right ? y : 1 - y
+        y = START_Y
       }
-      // The road never stands still: at least MIN_SPEED in the chosen direction.
-      const speed = direction * Math.max(Math.abs(slider), MIN_SPEED)
-      value += speed * TURN_RATE * dt
-      // Completed a full turn: start over from straight ahead.
-      if (Math.abs(value) >= 1) value = 0
-      rootRef.current?.style.setProperty('--road-value', String(value))
+      const style = rootRef.current?.style
+      style?.setProperty('--cam-x', `${((MAIN_COL + x) / ROAD_COLS) * 100}%`)
+      style?.setProperty('--cam-y', `${((MAIN_ROW + y) / ROAD_ROWS) * 100}%`)
+      style?.setProperty('--road-rot', `${-heading}deg`)
       frame = requestAnimationFrame(tick)
     })
     return () => cancelAnimationFrame(frame)

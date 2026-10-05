@@ -1,5 +1,8 @@
 .render-road {
-  --road-value: 0;
+  /* Defaults until the first frame: car at the bottom-centre of the main tile. */
+  --cam-x: 50%;
+  --cam-y: 66.667%;
+  --road-rot: 0deg;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -22,15 +25,8 @@
   /* One cell is as wide as the surface, so the camera sees edge to edge of the
      cell it stands in. */
   --tilt: 88deg;
-  /* The camera stands on the bottom edge of the middle row, centred. */
-  /* --road-value is -1..1. The camera follows a quarter circle (not a
-     diamond): x = 50% + 10% sin, y = 50% + 16% cos, so y is 66% at 0 and 50% at
-     ±1. The grid is 5 cells wide and 3 tall, so 10% of its width (0.5
-     cell) ≈ 16% of its height (0.48 cell). The rotation itself stays linear. */
-  --cam-angle: calc(var(--road-value) * pi / 2);
-  --cam-x: calc(50% + 10% * sin(var(--cam-angle)));
-  --cam-y: calc(50% + 16% * cos(var(--cam-angle)));
-  --road-rot: calc(-90deg * var(--road-value));
+  /* --cam-x, --cam-y and --road-rot (car position in the main tile and
+     board rotation) are set from RenderRoad.tsx on the root. */
   /* How back tiles stand up in their cell. */
   --road-stand: translateY(50%) rotateX(-90deg) translateY(-50%);
   position: absolute;
