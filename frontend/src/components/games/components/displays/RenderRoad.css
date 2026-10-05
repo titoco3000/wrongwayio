@@ -1,0 +1,65 @@
+.render-road {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.render-road__surface {
+  flex: 1;
+  min-height: 0;
+  border-radius: 0.5rem;
+  background: var(--color-gray-soft);
+  position: relative;
+  overflow: hidden;
+  perspective: 40rem;
+  perspective-origin: 50% -20%;
+}
+
+.render-road__grid {
+  /* One cell is as wide as the surface, so the camera sees edge to edge of the
+     cell it stands in. */
+  --tilt: 88deg;
+  /* The camera stands on the bottom edge of the middle row, centred. */
+  /* --road-value is -1..1. x is centred at 0 and moves ±70% of the grid width. */
+  --cam-x: calc(50% + 10% * var(--road-value));
+  /* y is 66% at 0 and 50% at ±1. */
+  --cam-y: calc(66% - 16% * abs(var(--road-value)));
+  --road-rot: calc(-90deg * var(--road-value));
+  position: absolute;
+  /* Put the camera point on the bottom-centre of the surface. */
+  left: 50%;
+  top: 100%;
+  width: calc(100% * var(--cols));
+  aspect-ratio: calc(var(--cols) / var(--rows));
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+  transform-style: preserve-3d;
+  transform-origin: var(--cam-x) var(--cam-y);
+  /* Right to left: heading spins the board around the camera, tilt lays it
+     flat around the camera, then the camera point is moved onto the surface. */
+  transform: translate(calc(-1 * var(--cam-x)), calc(-1 * var(--cam-y)))
+    rotateX(var(--tilt)) rotateZ(var(--road-rot)) translateZ(100px)
+    scale(2);
+}
+
+.render-road__tile {
+  min-width: 0;
+  min-height: 0;
+}
+
+.render-road__tile img {
+  display: block;
+  /* Bleed 0.5px past each edge so neighbouring tiles overlap and hide seams. */
+  width: calc(100% + 1px);
+  height: calc(100% + 1px);
+  margin: -0.5px;
+  max-width: none;
+  object-fit: cover;
+}
+
+.render-road__slider {
+  width: 100%;
+}

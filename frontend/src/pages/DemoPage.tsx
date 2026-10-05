@@ -4,6 +4,7 @@ import { Button, ButtonsRow } from '../components/general/ButtonsRow'
 import PagesStack, { useStack } from '../components/general/PagesStack'
 import Pigeon from '../components/general/Pigeon'
 import { Option, Select } from '../components/general/Select'
+import RenderRoad from '../components/games/components/displays/RenderRoad'
 import SpeechBubble from '../components/games/components/SpeechBubble'
 import StackPage from '../components/general/StackPage'
 import ThemeToggle from '../components/general/ThemeToggle'
@@ -99,6 +100,10 @@ function DemoBody() {
         <SpeechBubble side="left">Tail on the left.</SpeechBubble>
         <SpeechBubble side="right">Tail on the right.</SpeechBubble>
         <div className="h-4" />
+      </Section>
+
+      <Section title="RenderRoad">
+        <RenderRoad />
       </Section>
 
       <Section title="CollapsiblePanel">
