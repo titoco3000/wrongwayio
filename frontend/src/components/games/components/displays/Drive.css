@@ -1,0 +1,16 @@
+.drive {
+  --wheel-size: 16rem;
+  position: relative;
+  width: 100%;
+  /* Room for the lower half of the wheel, which hangs below the road. */
+  padding-bottom: calc(var(--wheel-size) / 2);
+}
+
+/* Wheel centre sits on the bottom edge of the road. */
+.drive__wheel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--wheel-size) / 2 + 10px);
+  width: var(--wheel-size);
+  transform: translate(-50%, 50%);
+}

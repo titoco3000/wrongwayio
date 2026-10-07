@@ -4,7 +4,7 @@ import { Button, ButtonsRow } from '../components/general/ButtonsRow'
 import PagesStack, { useStack } from '../components/general/PagesStack'
 import Pigeon from '../components/general/Pigeon'
 import { Option, Select } from '../components/general/Select'
-import RenderRoad from '../components/games/components/displays/RenderRoad'
+import Drive from '../components/games/components/displays/Drive'
 import SpeechBubble from '../components/games/components/SpeechBubble'
 import StackPage from '../components/general/StackPage'
 import ThemeToggle from '../components/general/ThemeToggle'
@@ -102,8 +102,8 @@ function DemoBody() {
         <div className="h-4" />
       </Section>
 
-      <Section title="RenderRoad">
-        <RenderRoad />
+      <Section title="Drive">
+        <Drive />
       </Section>
 
       <Section title="CollapsiblePanel">

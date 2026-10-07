@@ -1,0 +1,50 @@
+/* Touch zone: larger than the wheel and never rotated, so its centre and size
+   stay fixed while the wheel turns inside it. */
+.steering-wheel__zone {
+  --zone-pad: 15%;
+  padding: var(--zone-pad);
+  margin: calc(-1 * var(--zone-pad));
+  border-radius: 50%;
+  cursor: grab;
+  /* Dragging must steer, not scroll the page. */
+  touch-action: none;
+  user-select: none;
+}
+
+.steering-wheel__zone:active {
+  cursor: grabbing;
+}
+
+.steering-wheel {
+  --wheel-angle: 0deg;
+  width: 100%;
+  aspect-ratio: 1;
+  transform: rotate(var(--wheel-angle));
+}
+
+.steering-wheel svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.steering-wheel__rim {
+  fill: none;
+  stroke: #333;
+  stroke-width: 12;
+}
+
+.steering-wheel__spoke {
+  fill: none;
+  stroke: #333;
+  stroke-width: 10;
+  stroke-linejoin: round;
+}
+
+.steering-wheel__hub {
+  fill: #555;
+}
+
+.steering-wheel__mark {
+  fill: #484848;
+}

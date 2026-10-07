@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import crossroads from '../../../../../assets/crossroads.png'
 import back from '../../../../../assets/back.png'
 import './RenderRoad.css'
@@ -6,7 +6,7 @@ import './RenderRoad.css'
 export const ROAD_COLS = 5
 export const ROAD_ROWS = 5
 
-/** Degrees per second the heading changes at full slider. */
+/** Degrees per second the heading changes at full steering. */
 const TURN_RATE = 60
 /** Forward speed, in main-tile widths per second. */
 const FORWARD_SPEED = 0.3
@@ -44,17 +44,17 @@ type Props = {
    * filled with a standing back tile.
    */
   tiles?: (RoadTile | undefined)[]
+  /** Steering amount, -1 (left) .. 1 (right), read every frame. */
+  steerRef: RefObject<number>
 }
 
-export default function RenderRoad({ tiles = DEFAULT_TILES }: Props) {
-  // The slider steers (-1..1). The car always drives forward inside the main
-  // tile; leaving it sideways resets it to the start and rotates its heading by
-  // 90deg, so it stays in the central tile while the world seems to move.
-  const [speed, setSpeed] = useState(0)
+export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef }: Props) {
+  // `steerRef` steers (-1..1). The car always drives forward inside the
+  // main tile; leaving it sideways resets it to the start and rotates its
+  // heading by 90deg, so it stays in the central tile while the world seems to
+  // move.
   const [topDown, setTopDown] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
-  const speedRef = useRef(speed)
-  speedRef.current = speed
 
   useEffect(() => {
     let x = START_X
@@ -67,7 +67,7 @@ export default function RenderRoad({ tiles = DEFAULT_TILES }: Props) {
       // so a backgrounded tab doesn't jump on return.
       const dt = Math.min((now - last) / 1000, MAX_DT)
       last = now
-      heading += speedRef.current * TURN_RATE * dt
+      heading += steerRef.current * TURN_RATE * dt
       const rad = (heading * Math.PI) / 180
       x += Math.sin(rad) * FORWARD_SPEED * dt
       y -= Math.cos(rad) * FORWARD_SPEED * dt
@@ -93,10 +93,14 @@ export default function RenderRoad({ tiles = DEFAULT_TILES }: Props) {
       frame = requestAnimationFrame(tick)
     })
     return () => cancelAnimationFrame(frame)
-  }, [])
+  }, [steerRef])
 
   return (
     <div className={`render-road${topDown ? ' render-road--top' : ''}`} ref={rootRef}>
+      <label className="render-road__toggle">
+        <input type="checkbox" checked={topDown} onChange={(e) => setTopDown(e.target.checked)} />
+        Top-down view
+      </label>
       <div className="render-road__surface">
         <div
           className="render-road__grid"
@@ -131,19 +135,6 @@ export default function RenderRoad({ tiles = DEFAULT_TILES }: Props) {
           </div>
         </div>
       </div>
-      <label className="render-road__toggle">
-        <input type="checkbox" checked={topDown} onChange={(e) => setTopDown(e.target.checked)} />
-        Top-down view
-      </label>
-      <input
-        type="range"
-        min={-1}
-        max={1}
-        step={0.01}
-        value={speed}
-        onChange={(e) => setSpeed(Number(e.target.value))}
-        className="render-road__slider"
-      />
     </div>
   )
 }
