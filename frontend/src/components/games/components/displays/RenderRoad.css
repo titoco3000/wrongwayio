@@ -44,7 +44,7 @@
      flat around the camera, then the camera point is moved onto the surface. */
   transform: translate(calc(-1 * var(--cam-x)), calc(-1 * var(--cam-y)))
     rotateX(var(--tilt)) rotateZ(var(--road-rot)) translateZ(100px)
-    scale(2) scaleZ(2.5);
+    scale(4) scaleZ(2.5);
 }
 
 /* Top-down: no perspective, the whole board fits the surface and stays still,

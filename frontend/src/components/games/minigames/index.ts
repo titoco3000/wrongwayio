@@ -4,6 +4,7 @@ import type { GameProps } from '../components/GameRound'
 import SwipeLabeledGame from './SwipeLabeledGame'
 import ArrowTypingGame from './ArrowTypingGame'
 import SwipeTypingGame from './SwipeTypingGame'
+import DriveGame from './DriveGame'
 import WordArrowGame from './WordArrowGame'
 import WordSwipeGame from './WordSwipeGame'
 
@@ -15,4 +16,5 @@ export const games: { name: string; Component: ComponentType<GameProps> }[] = [
   { name: 'Swipe, typing', Component: SwipeTypingGame },
   { name: 'Word, arrow buttons', Component: WordArrowGame },
   { name: 'Word, swipe', Component: WordSwipeGame },
+  { name: 'Drive', Component: DriveGame },
 ]

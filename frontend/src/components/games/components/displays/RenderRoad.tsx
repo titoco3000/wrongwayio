@@ -9,9 +9,11 @@ export const ROAD_ROWS = 5
 /** Degrees per second the heading changes at full steering. */
 const TURN_RATE = 60
 /** Forward speed, in main-tile widths per second. */
-const FORWARD_SPEED = 0.3
+const FORWARD_SPEED = 0.1
 /** Longest frame time (seconds) that is integrated. */
 const MAX_DT = 0.1
+/** Smallest Y the car reaches; getting there is a crash against the far edge. */
+const CRASH_Y = 0.2
 /** Car start inside the main tile (0..1 each axis, y grows downwards). */
 const START_X = 0.5
 const START_Y = 1
@@ -38,6 +40,9 @@ const DEFAULT_TILES: (RoadTile | undefined)[] = [
   B(180), B(180), B(180), B(180), B(180),
 ]
 
+/** Edge of the main tile the car left through. */
+export type ExitSide = 'left' | 'right' | 'back'
+
 type Props = {
   /**
    * Row-major, ROAD_COLS * ROAD_ROWS entries. Missing/undefined entries are
@@ -46,21 +51,31 @@ type Props = {
   tiles?: (RoadTile | undefined)[]
   /** Steering amount, -1 (left) .. 1 (right), read every frame. */
   steerRef: RefObject<number>
+  /** The car left the main tile and was teleported back to the start. */
+  onExit?: (side: ExitSide) => void
+  /** The car reached the far edge of the main tile. Fires once per approach. */
+  onCrash?: () => void
 }
 
-export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef }: Props) {
+export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, onCrash }: Props) {
   // `steerRef` steers (-1..1). The car always drives forward inside the
   // main tile; leaving it sideways resets it to the start and rotates its
   // heading by 90deg, so it stays in the central tile while the world seems to
   // move.
   const [topDown, setTopDown] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  // Latest callbacks, so the animation loop never restarts when they change.
+  const onExitRef = useRef(onExit)
+  onExitRef.current = onExit
+  const onCrashRef = useRef(onCrash)
+  onCrashRef.current = onCrash
 
   useEffect(() => {
     let x = START_X
     let y = START_Y
     // Degrees, 0 = straight up, positive = towards the right.
     let heading = 0
+    let crashed = false
     let last = performance.now()
     let frame = requestAnimationFrame(function tick(now) {
       // Scale by elapsed time so speed is the same at any refresh rate; cap it
@@ -71,12 +86,19 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef }: Props) {
       const rad = (heading * Math.PI) / 180
       x += Math.sin(rad) * FORWARD_SPEED * dt
       y -= Math.cos(rad) * FORWARD_SPEED * dt
-      y = Math.max(0.2, y)
+      if (y <= CRASH_Y) {
+        y = CRASH_Y
+        if (!crashed) onCrashRef.current?.()
+        crashed = true
+      } else {
+        crashed = false
+      }
       if (y > 1) {
         // Out through the bottom: mirror X and turn around.
         heading += 180
         x = 1 - x
         y = START_Y
+        onExitRef.current?.('back')
       } else if (x > 1 || x < 0) {
         // Out through the right turns the heading back left, and vice versa.
         // The old Y becomes the new X (mirrored when leaving left), as the
@@ -85,6 +107,7 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef }: Props) {
         heading -= right ? 90 : -90
         x = right ? y : 1 - y
         y = START_Y
+        onExitRef.current?.(right ? 'right' : 'left')
       }
       const style = rootRef.current?.style
       style?.setProperty('--cam-x', `${((MAIN_COL + x) / ROAD_COLS) * 100}%`)
