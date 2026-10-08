@@ -34,6 +34,7 @@
   "gear.3": "3ª marcha",
   "gear.4": "4ª marcha",
   "gear.5": "5ª marcha",
+  "gear.R": "Marcha à ré",
 
   "audio.play": "Tocar a palavra",
   "audio.replay": "Tocar a palavra de novo",
@@ -141,5 +142,20 @@
   "invite.own": "Este é o seu próprio link de presente. Envie para um amigo.",
   "invite.login.prompt": "Entre para aceitar.",
   "invite.accept.prompt": "Aceite para começar a aprender.",
-  "invite.accept": "Aceitar"
+  "invite.accept": "Aceitar",
+
+  "home.scoreboard": "Classificação",
+  "scoreboard.title": "Classificação",
+  "scoreboard.streak": "Sequência",
+  "scoreboard.driving": "Condução",
+  "scoreboard.general": "Geral",
+  "scoreboard.gear-1": "1ª",
+  "scoreboard.gear-2": "2ª",
+  "scoreboard.gear-3": "3ª",
+  "scoreboard.gear-4": "4ª",
+  "scoreboard.gear-5": "5ª",
+  "scoreboard.gear-R": "Ré",
+  "scoreboard.empty": "Ninguém está neste ranking ainda.",
+  "scoreboard.days.one": "{count} dia",
+  "scoreboard.days.other": "{count} dias"
 }

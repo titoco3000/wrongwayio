@@ -1,0 +1,17 @@
+# rust
+backend/target/
+
+# terraform
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfstate.d/
+infra/crash.log
+infra/placeholder/*.zip
+
+# env handoff from `make -C infra output`
+backend/.env.*
+frontend/.env.*
+!frontend/.env.example
+backend/.dynamodb/

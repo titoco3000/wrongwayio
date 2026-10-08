@@ -34,6 +34,7 @@
   "gear.3": "3rd gear",
   "gear.4": "4th gear",
   "gear.5": "5th gear",
+  "gear.R": "Reverse",
 
   "audio.play": "Play the word",
   "audio.replay": "Play the word again",
@@ -141,5 +142,20 @@
   "invite.own": "This is your own gift link. Send it to a friend instead.",
   "invite.login.prompt": "Log in to accept it.",
   "invite.accept.prompt": "Accept it to start learning.",
-  "invite.accept": "Accept"
+  "invite.accept": "Accept",
+
+  "home.scoreboard": "Scoreboard",
+  "scoreboard.title": "Scoreboard",
+  "scoreboard.streak": "Streak",
+  "scoreboard.driving": "Driving",
+  "scoreboard.general": "General",
+  "scoreboard.gear-1": "1st",
+  "scoreboard.gear-2": "2nd",
+  "scoreboard.gear-3": "3rd",
+  "scoreboard.gear-4": "4th",
+  "scoreboard.gear-5": "5th",
+  "scoreboard.gear-R": "Rear",
+  "scoreboard.empty": "Nobody is on this board yet.",
+  "scoreboard.days.one": "{count} day",
+  "scoreboard.days.other": "{count} days"
 }

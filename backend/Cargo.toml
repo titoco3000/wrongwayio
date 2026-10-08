@@ -1,0 +1,51 @@
+[package]
+name = "wrongwayio-api"
+version = "0.1.0"
+edition = "2021"
+
+# main.rs sits directly in backend/; the library crate lives under lib/ so it
+# can be tested headless (`cargo test --lib`) apart from the binary.
+[lib]
+name = "wrongwayio_api"
+path = "lib/lib.rs"
+
+[[bin]]
+name = "wrongwayio-api"
+path = "main.rs"
+
+# `make run` builds with no features and listens on a local port;
+# `cargo lambda build --features lambda` swaps in the Lambda runtime.
+[features]
+lambda = ["dep:lambda_http"]
+
+[dependencies]
+# TLS pinned to rustls/ring: aws-lc-rs (the default) needs cmake and a C
+# toolchain that the Lambda cross-build won't have.
+aws-config = { version = "1", default-features = false, features = [
+  "behavior-version-latest",
+  "rt-tokio",
+  "credentials-process",
+  "sso",
+] }
+aws-sdk-dynamodb = { version = "1", default-features = false, features = [
+  "behavior-version-latest",
+  "rt-tokio",
+  "rustls",
+] }
+axum = "0.8"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+lambda_http = { version = "1", optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_dynamo = { version = "4", features = ["aws-sdk-dynamodb+1"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "time"] }
+tower-http = { version = "0.6", default-features = false, features = ["cors"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

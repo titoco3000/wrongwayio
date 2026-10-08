@@ -1,10 +1,10 @@
 /**
- * Stub of the backend. Same shape a real API would have (async, can fail), but the "server" is
- * a table in localStorage, so accounts only exist on this browser. Swap the bodies for fetch calls later.
+ * Client of the backend (see /backend). With `VITE_API_URL` set, calls go to it; without, the "server" is
+ * a table in localStorage, so accounts only exist on this browser. Same shape either way (async, can fail).
  */
 
 import { t } from '../i18n'
-import type { Records as InfiniteRecords } from '../infinite/infiniteDrive'
+import { normalizeRecords, type DriveGear, type Records as InfiniteRecords } from '../infinite/infiniteDrive'
 
 export type User = {
   name: string
@@ -14,9 +14,18 @@ export type User = {
   premiumFrom: string | null
   /** best results of infinite driving; missing until the first run (and on accounts made before it existed) */
   infiniteRecords?: InfiniteRecords | null
+  /** the last daily challenge played; its date is the player's local day, YYYY-MM-DD */
+  daily?: { date: string; result: 'done' | 'failed' } | null
+  /** longest run of days with a won daily challenge */
+  longestStreak?: number
 }
 
-export type ApiErrorCode = 'name-taken' | 'invalid-name' | 'not-found' | 'offline'
+/** One row of the scoreboard. */
+export type ScoreboardEntry = { name: string; score: number; ms: number; longestStreak: number; byGear: InfiniteRecords['byGear'] }
+/** `score` is infinite driving overall, `gear-X` its points in one gear */
+export type ScoreboardKind = 'score' | 'streak' | `gear-${DriveGear}`
+
+export type ApiErrorCode = 'name-taken' | 'invalid-name' | 'not-found' | 'offline' | 'server'
 
 export class ApiError extends Error {
   code: ApiErrorCode
@@ -59,6 +68,36 @@ const writeTable = (table: Table) => {
   }
 }
 
+/** What a board ranks an entry by. */
+export const scoreboardValue = (e: ScoreboardEntry, by: ScoreboardKind) =>
+  by === 'score' ? e.score : by === 'streak' ? e.longestStreak : e.byGear[by.slice(5) as DriveGear]
+
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') || null
+
+const CODES: readonly ApiErrorCode[] = ['name-taken', 'invalid-name', 'not-found']
+
+/** One call to the backend. No connection is `offline`; an error body's `code` becomes the ApiError's. */
+async function request<T>(path: string, body?: unknown): Promise<T> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new ApiError('offline')
+  let res: Response
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method: body === undefined ? 'GET' : 'POST',
+      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+  } catch {
+    throw new ApiError('offline')
+  }
+  if (!res.ok) {
+    const code = (await res.json().catch(() => null))?.code
+    throw new ApiError(CODES.includes(code) ? code : 'server')
+  }
+  return res.json()
+}
+
+const userPath = (name: string) => `/users/${encodeURIComponent(cleanName(name))}`
+
 /** Waits like a network round trip, and fails like one when the device has no connection. */
 const delay = async () => {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new ApiError('offline')
@@ -71,7 +110,7 @@ export const apiErrorMessage = (e: unknown) =>
     ? t('error.offline')
     : t('error.generic')
 
-export const api = {
+const stubApi = {
   /** The user with that name, or null if there is none. */
   async getUser(name: string): Promise<User | null> {
     await delay()
@@ -111,7 +150,49 @@ export const api = {
     writeTable({ ...table, [keyOf(name)]: updated })
     return updated
   },
+
+  /** Records today's daily challenge result. The stub keeps results on this device only, so there is nothing to do. */
+  async saveDailyResult(name: string, _date: string, _result: 'done' | 'failed'): Promise<User> {
+    await delay()
+    const user = readTable()[keyOf(name)]
+    if (!user) throw new ApiError('not-found')
+    return user
+  },
+
+  /** The best players, best first; players with nothing on the board are left off. */
+  async getScoreboard(by: ScoreboardKind): Promise<ScoreboardEntry[]> {
+    await delay()
+    const value = (e: ScoreboardEntry) => scoreboardValue(e, by)
+    return Object.values(readTable())
+      .map((u) => ({
+        name: u.name,
+        score: u.infiniteRecords?.score ?? 0,
+        ms: u.infiniteRecords?.ms ?? 0,
+        longestStreak: u.longestStreak ?? 0,
+        byGear: normalizeRecords(u.infiniteRecords).byGear,
+      }))
+      .filter((e) => value(e) > 0)
+      .sort((a, b) => value(b) - value(a) || a.name.localeCompare(b.name))
+  },
 }
+
+const realApi: typeof stubApi = {
+  async getUser(name) {
+    try {
+      return await request<User>(userPath(name))
+    } catch (e) {
+      if (e instanceof ApiError && e.code === 'not-found') return null
+      throw e
+    }
+  },
+  createUser: (name) => request<User>('/users', { name: cleanName(name) }),
+  saveInfiniteRecords: (name, records) => request<User>(`${userPath(name)}/infinite`, records),
+  saveDailyResult: (name, date, result) => request<User>(`${userPath(name)}/daily`, { date, result }),
+  grantPremium: (name, from, days) => request<User>(`${userPath(name)}/premium`, { from, days }),
+  getScoreboard: (by) => request<ScoreboardEntry[]>(`/scoreboard?by=${by}`),
+}
+
+export const api = API_URL ? realApi : stubApi
 
 /** days of premium a gifted pass gives */
 export const GIFT_DAYS = 30

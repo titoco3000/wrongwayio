@@ -34,6 +34,7 @@
   "gear.3": "3.ª marcha",
   "gear.4": "4.ª marcha",
   "gear.5": "5.ª marcha",
+  "gear.R": "Marcha atrás",
 
   "audio.play": "Reproducir la palabra",
   "audio.replay": "Reproducir la palabra otra vez",
@@ -141,5 +142,20 @@
   "invite.own": "Este es tu propio enlace de regalo. Envíalo a un amigo.",
   "invite.login.prompt": "Inicia sesión para aceptarlo.",
   "invite.accept.prompt": "Acéptalo para obtener el conocimiento.",
-  "invite.accept": "Aceptar"
+  "invite.accept": "Aceptar",
+
+  "home.scoreboard": "Clasificación",
+  "scoreboard.title": "Clasificación",
+  "scoreboard.streak": "Racha",
+  "scoreboard.driving": "Conducción",
+  "scoreboard.general": "General",
+  "scoreboard.gear-1": "1.ª",
+  "scoreboard.gear-2": "2.ª",
+  "scoreboard.gear-3": "3.ª",
+  "scoreboard.gear-4": "4.ª",
+  "scoreboard.gear-5": "5.ª",
+  "scoreboard.gear-R": "Atrás",
+  "scoreboard.empty": "Todavía no hay nadie en esta tabla.",
+  "scoreboard.days.one": "{count} día",
+  "scoreboard.days.other": "{count} días"
 }

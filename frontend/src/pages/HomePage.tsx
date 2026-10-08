@@ -11,6 +11,7 @@ import { loadDailyResult } from '../daily/dailyChallenge'
 import DailyChallengePage from './DailyChallengePage'
 import DemoPage from './DemoPage'
 import GamePage from './GamePage'
+import ScoreboardPage from './ScoreboardPage'
 import { useI18n } from '../i18n'
 
 export default function HomePage() {
@@ -54,6 +55,9 @@ export default function HomePage() {
             </Button>
             <Button className="w-full" onClick={() => push(<GamePage />)}>
               {t('home.minigames')}
+            </Button>
+            <Button className="w-full" variant="neutral" onClick={() => push(<ScoreboardPage />)}>
+              {t('home.scoreboard')}
             </Button>
             {/* <Button className="w-full" variant="neutral" onClick={() => push(<DemoPage />)}>
               Component demo

@@ -45,7 +45,8 @@ describe('infinite driving records', () => {
   })
 
   it('counts reverse as first gear and formats the clock', () => {
-    expect(driveGear('R')).toBe('1')
+    expect(driveGear('R')).toBe('R')
+    expect(driveGear('N')).toBe('1')
     expect(driveGear('4')).toBe('4')
     expect(formatClock(83000)).toBe('1:23')
   })

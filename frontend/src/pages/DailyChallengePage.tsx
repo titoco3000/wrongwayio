@@ -2,15 +2,16 @@ import { useState } from 'react'
 import PagesStack, { useStack } from '../components/general/PagesStack'
 import { games } from '../components/games/minigames'
 import StreakScreen from '../components/games/components/StreakScreen'
+import { api } from '../api'
 import { useSession } from '../session/SessionProvider'
-import { DAILY_GAME_COUNT, dailyGameIndices, saveDailyResult } from '../daily/dailyChallenge'
+import { DAILY_GAME_COUNT, dailyGameIndices, saveDailyResult, todayKey } from '../daily/dailyChallenge'
 
 const LOOPS = 5
 
 /** Plays the day's minigames back to back; the first loss fails the challenge. */
 function Run({ record }: { record: boolean }) {
   const { close } = useStack()
-  const { user } = useSession()
+  const { user, update } = useSession()
   // fixed when the run starts, so it can't change if midnight passes mid-run
   const [order] = useState(() => dailyGameIndices(games.length))
   const [step, setStep] = useState(0)
@@ -21,6 +22,8 @@ function Run({ record }: { record: boolean }) {
 
   const finish = (result: 'done' | 'failed') => {
     const newStreak = record ? saveDailyResult(user?.name ?? null, result) : 0
+    // the account keeps its own copy for the scoreboard; a failed sync leaves the local result as is
+    if (record && user) api.saveDailyResult(user.name, todayKey(), result).then(update).catch(() => {})
     if (record && result === 'done') setStreak(newStreak)
     else close()
   }

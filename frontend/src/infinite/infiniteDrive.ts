@@ -1,10 +1,10 @@
-/** The speeds points are counted at. Reverse counts as first gear. */
-export const DRIVE_GEARS = ['1', '2', '3', '4', '5'] as const
+/** The speeds points are counted at; 'R' is reverse. */
+export const DRIVE_GEARS = ['1', '2', '3', '4', '5', 'R'] as const
 export type DriveGear = (typeof DRIVE_GEARS)[number]
 
-export const emptyByGear = (): Record<DriveGear, number> => ({ '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 })
+export const emptyByGear = (): Record<DriveGear, number> => ({ '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, R: 0 })
 
-/** The counter a gear's points go to. */
+/** The counter a gear's points go to; neutral and anything unknown count as first gear. */
 export const driveGear = (gear: string): DriveGear => ((DRIVE_GEARS as readonly string[]).includes(gear) ? (gear as DriveGear) : '1')
 
 /** One run of infinite driving. */
