@@ -7,6 +7,7 @@ import Pigeon from '../components/general/Pigeon'
 import PremiumBanner from '../components/profile/PremiumBanner'
 import { useSession } from '../session/SessionProvider'
 import LoginPage from './LoginPage'
+import { useI18n } from '../i18n'
 
 type Props = {
   /** name of the person who sent the gift */
@@ -19,6 +20,7 @@ type Props = {
 export default function InvitePage({ from, onDone }: Props) {
   const { push } = useStack()
   const { user, loading, update } = useSession()
+  const { t, rich } = useI18n()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [accepted, setAccepted] = useState(false)
@@ -44,31 +46,31 @@ export default function InvitePage({ from, onDone }: Props) {
     message = '...'
     action = null
   } else if (accepted && user) {
-    message = `Enjoy the glory, ${user.name}!`
+    message = t('invite.enjoy', { name: user.name })
     action = (
       <Button className="w-full" onClick={onDone}>
-        Continue
+        {t('common.continue')}
       </Button>
     )
   } else if (ownLink) {
-    message = 'This is your own gift link. Send it to a friend instead.'
+    message = t('invite.own')
     action = (
       <Button className="w-full" onClick={onDone}>
-        Continue
+        {t('common.continue')}
       </Button>
     )
   } else if (!user) {
-    message = 'Log in to accept it.'
+    message = t('invite.login.prompt')
     action = (
       <Button className="w-full" onClick={() => push(<LoginPage />)}>
-        Log in
+        {t('login.title')}
       </Button>
     )
   } else {
-    message = 'Accept it to get the flashy banner.'
+    message = t('invite.accept.prompt')
     action = (
       <Button className="w-full" onClick={accept} disabled={busy}>
-        {busy ? '...' : 'Accept'}
+        {busy ? '...' : t('invite.accept')}
       </Button>
     )
   }
@@ -80,13 +82,9 @@ export default function InvitePage({ from, onDone }: Props) {
         <div className="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
           <Pigeon className="size-32" />
           <h1 className="text-4xl">
-            {accepted ? 'Gift accepted!' : (
-              <>
-                <span className="text-brand-blue">{from}</span> gifted you a premium membership!
-              </>
-            )}
+            {accepted ? t('invite.accepted.title') : rich('invite.title', { from: <span className="text-brand-blue">{from}</span> })}
           </h1>
-          {!accepted && <p className="text-gray-dark">{GIFT_DAYS} days of premium access to right/left lessons.</p>}
+          {!accepted && <p className="text-gray-dark">{t('invite.body', { days: GIFT_DAYS })}</p>}
           {accepted && user && <PremiumBanner user={user} />}
           {error && <p role="alert" className="text-brand-red-dark">{error}</p>}
           <div className="w-full">{action}</div>

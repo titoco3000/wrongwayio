@@ -6,6 +6,7 @@ import Pigeon from '../components/general/Pigeon'
 import StackPage from '../components/general/StackPage'
 import TextField from '../components/general/TextField'
 import { useSession } from '../session/SessionProvider'
+import { useI18n } from '../i18n'
 
 type Props = {
   /** pre-fills the name field, e.g. when sent here by a login that found nobody */
@@ -15,6 +16,7 @@ type Props = {
 /** Asks for a name, checks with the API that it is free, and creates the account once the user confirms. */
 export default function CreateAccountPage({ initialName = '' }: Props) {
   const { pop } = useStack()
+  const { t } = useI18n()
   const { login } = useSession()
   const [name, setName] = useState(initialName)
   const [step, setStep] = useState<'name' | 'confirm' | 'done'>('name')
@@ -22,11 +24,11 @@ export default function CreateAccountPage({ initialName = '' }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   const check = async () => {
-    if (!isValidName(name)) return setError(`Names have ${NAME_MIN} to ${NAME_MAX} characters.`)
+    if (!isValidName(name)) return setError(t('account.nameLength', { min: NAME_MIN, max: NAME_MAX }))
     setBusy(true)
     setError(null)
     try {
-      if (await api.getUser(name)) setError(`"${cleanName(name)}" is already taken.`)
+      if (await api.getUser(name)) setError(t('account.taken', { name: cleanName(name) }))
       else setStep('confirm')
     } catch (e) {
       setError(apiErrorMessage(e))
@@ -43,7 +45,7 @@ export default function CreateAccountPage({ initialName = '' }: Props) {
       setStep('done')
     } catch (e) {
       // someone may have taken the name since it was checked
-      setError(e instanceof ApiError && e.code === 'name-taken' ? `"${cleanName(name)}" was just taken.` : apiErrorMessage(e))
+      setError(e instanceof ApiError && e.code === 'name-taken' ? t('account.justTaken', { name: cleanName(name) }) : apiErrorMessage(e))
       setStep('name')
     } finally {
       setBusy(false)
@@ -53,19 +55,19 @@ export default function CreateAccountPage({ initialName = '' }: Props) {
   return (
     <StackPage
       nav="back"
-      header={<h1 className="text-xl">Create account</h1>}
+      header={<h1 className="text-xl">{t('account.create')}</h1>}
       body={
         <div className="flex flex-1 flex-col gap-6 p-4">
           {step === 'name' && (
             <TextField
-              label="Pick a name"
+              label={t('account.pickName')}
               value={name}
               onChange={(v) => {
                 setName(v)
                 setError(null)
               }}
               onSubmit={check}
-              submitLabel="Continue"
+              submitLabel={t('common.continue')}
               maxLength={NAME_MAX}
               error={error}
               busy={busy}
@@ -73,15 +75,15 @@ export default function CreateAccountPage({ initialName = '' }: Props) {
           )}
           {step === 'confirm' && (
             <div className="flex flex-col gap-4 text-center">
-              <p className="text-gray-dark">Good news, nobody has it yet.</p>
+              <p className="text-gray-dark">{t('account.goodNews')}</p>
               <h2 className="text-3xl">{cleanName(name)}</h2>
-              <p>Create the account with this name?</p>
+              <p>{t('account.confirm')}</p>
               <div className="flex gap-3">
                 <Button variant="neutral" onClick={() => setStep('name')} disabled={busy}>
-                  Change
+                  {t('account.change')}
                 </Button>
                 <Button onClick={create} disabled={busy}>
-                  {busy ? '...' : 'Create account'}
+                  {busy ? '...' : t('account.create')}
                 </Button>
               </div>
             </div>
@@ -89,10 +91,10 @@ export default function CreateAccountPage({ initialName = '' }: Props) {
           {step === 'done' && (
             <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
               <Pigeon className="size-32" />
-              <h2 className="text-4xl text-brand-blue">Your account is officially created!</h2>
-              <p className="text-gray-dark">Welcome, {cleanName(name)}.</p>
+              <h2 className="text-4xl text-brand-blue">{t('account.done')}</h2>
+              <p className="text-gray-dark">{t('account.welcome', { name: cleanName(name) })}</p>
               <Button className="w-full flex-none!" onClick={pop}>
-                Continue
+                {t('common.continue')}
               </Button>
             </div>
           )}

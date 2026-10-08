@@ -11,10 +11,12 @@ import { loadDailyResult } from '../daily/dailyChallenge'
 import DailyChallengePage from './DailyChallengePage'
 import DemoPage from './DemoPage'
 import GamePage from './GamePage'
+import { useI18n } from '../i18n'
 
 export default function HomePage() {
   const { push } = useStack()
   const { user } = useSession()
+  const { t } = useI18n()
   // bumped when a challenge ends, to read the saved result again
   const [dailyVersion, setDailyVersion] = useState(0)
   // each user (or the guest) has their own daily result
@@ -23,7 +25,7 @@ export default function HomePage() {
   // null: closed; record: whether finishing saves the result
   const [daily, setDaily] = useState<{ record: boolean } | null>(null)
 
-  const dailyLabel = dailyResult === 'done' ? 'Daily challenge done!' : dailyResult === 'failed' ? 'Daily challenge failed!' : 'Daily challenge'
+  const dailyLabel = dailyResult === 'done' ? t('daily.done') : dailyResult === 'failed' ? t('daily.failed') : t('daily.title')
   return (
     <>
       <Container
@@ -35,10 +37,10 @@ export default function HomePage() {
         }
         body={
           <div className="flex flex-col items-center gap-6 p-6 pt-16 text-center">
-            <SpeechBubble side="right">Which way is left again?</SpeechBubble>
+            <SpeechBubble side="right">{t('home.bubble')}</SpeechBubble>
             <Pigeon className="size-40" />
             <h1 className="text-4xl">WrongWayio</h1>
-            <p className="text-gray-dark">Learn your left from your right. Eventually.</p>
+            <p className="text-gray-dark">{t('home.tagline')}</p>
           </div>
         }
         footer={
@@ -51,7 +53,7 @@ export default function HomePage() {
               {dailyLabel}
             </Button>
             <Button className="w-full" onClick={() => push(<GamePage />)}>
-              MiniGames
+              {t('home.minigames')}
             </Button>
             <Button className="w-full" variant="neutral" onClick={() => push(<DemoPage />)}>
               Component demo
@@ -61,10 +63,10 @@ export default function HomePage() {
       />
       {confirmRepeat && (
         <ConfirmDialog
-          title="Repeat the daily challenge?"
-          message="Your saved result for today will not change."
-          confirmLabel="Repeat"
-          cancelLabel="Cancel"
+          title={t('daily.repeat.title')}
+          message={t('daily.repeat.message')}
+          confirmLabel={t('daily.repeat.confirm')}
+          cancelLabel={t('common.cancel')}
           onCancel={() => setConfirmRepeat(false)}
           onConfirm={() => {
             setConfirmRepeat(false)

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Direction } from './DirectionDisplay'
+import { useI18n } from '../../../../i18n'
 
 type Props = {
   direction: Direction
@@ -45,6 +46,7 @@ const DRAWN_AT = Array.from({ length: STEPS + 1 }, (_, i) => timeAt(i / STEPS))
  * Remount (change `key`) to play again.
  */
 export default function BallDirectionDisplay({ direction, onDirectionSet }: Props) {
+  const { t } = useI18n()
   const sign = direction === 'right' ? 1 : -1
   const ballRef = useRef<HTMLDivElement>(null)
   const trailRef = useRef<HTMLDivElement>(null)
@@ -108,7 +110,7 @@ export default function BallDirectionDisplay({ direction, onDirectionSet }: Prop
       </div>
       {/* appears at the center, where the ball started and then faded out */}
       <p className={`absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-2xl ${done ? 'fade-in' : 'invisible'}`}>
-        The swipe was to what direction?
+        {t('swipe.question')}
       </p>
     </div>
   )

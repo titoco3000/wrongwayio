@@ -1,14 +1,15 @@
 import { Button } from '../../general/ButtonsRow'
 import Container from '../../general/Container'
 import Pigeon from '../../general/Pigeon'
+import { useI18n } from '../../../i18n'
 
 /** Position in a series of games: `completed` of `total` are done, counting the one just won. */
 export type ChallengeProgress = { completed: number; total: number }
 
 function ProgressDots({ completed, total }: ChallengeProgress) {
-  const left = total - completed
+  const { t } = useI18n()
   return (
-    <div className="flex flex-col items-center gap-2" aria-label={`${completed} of ${total} games done`}>
+    <div className="flex flex-col items-center gap-2" aria-label={t('result.progress', { completed, total })}>
       <div className="flex gap-2">
         {Array.from({ length: total }, (_, i) => (
           <span key={i} className={`size-4 rounded-full border-2 ${i < completed ? 'border-brand-blue-dark bg-brand-blue' : 'border-gray-mid'}`} />
@@ -47,6 +48,7 @@ function StampStar() {
 
 /** Default full-screen victory/defeat screen shared by all games. */
 export default function ResultScreen({ won, onContinue, title, progress }: Props) {
+  const { t } = useI18n()
   // content waits for the win stamp to land
   const delay = won ? { animationDelay: '1700ms' } : undefined
   return (
@@ -55,7 +57,7 @@ export default function ResultScreen({ won, onContinue, title, progress }: Props
       body={
         <div className="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
           <h1 style={delay} className={`fade-in text-5xl ${won ? 'text-brand-blue' : 'text-brand-red'}`}>
-            {title ?? (won ? 'You nailed it!' : 'Wrong way!')}
+            {title ?? (won ? t('result.won') : t('result.lost'))}
           </h1>
           {won ? <StampStar /> : <Pigeon className="fade-in size-32 grayscale" />}
           {won && progress && (
@@ -65,7 +67,7 @@ export default function ResultScreen({ won, onContinue, title, progress }: Props
           )}
           <div style={delay} className="fade-in w-full">
             <Button className="w-full" onClick={onContinue}>
-              Continue
+              {t('common.continue')}
             </Button>
           </div>
         </div>

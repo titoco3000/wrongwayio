@@ -3,6 +3,8 @@
  * a table in localStorage, so accounts only exist on this browser. Swap the bodies for fetch calls later.
  */
 
+import { t } from '../i18n'
+
 export type User = {
   name: string
   /** epoch ms when the premium pass runs out; null if the user never had one */
@@ -63,8 +65,8 @@ const delay = async () => {
 /** Text to show the user for a failed call. */
 export const apiErrorMessage = (e: unknown) =>
   e instanceof ApiError && e.code === 'offline'
-    ? 'You are offline. Check your connection and try again.'
-    : 'Something went wrong. Try again.'
+    ? t('error.offline')
+    : t('error.generic')
 
 export const api = {
   /** The user with that name, or null if there is none. */

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { Direction } from '../displays/DirectionDisplay'
 import type { Point } from '../../hooks/useClickOrigin'
+import { useI18n } from '../../../../i18n'
 
 const BALL_RADIUS = 32
 const GROW_MS = 150
@@ -32,6 +33,7 @@ type Props = {
  * vertical movement doesn't matter and a shorter swipe is ignored.
  */
 export default function DirectionSwipeInput({ onSubmit, disabled }: Props) {
+  const { t } = useI18n()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const onSubmitRef = useRef(onSubmit)
   onSubmitRef.current = onSubmit
@@ -150,7 +152,7 @@ export default function DirectionSwipeInput({ onSubmit, disabled }: Props) {
 
   return (
     <>
-      <p className="pop-up p-4 text-center text-xl text-gray-dark">Swipe left or right</p>
+      <p className="pop-up p-4 text-center text-xl text-gray-dark">{t('swipe.hint')}</p>
       {/* in the body, so no transformed ancestor affects `fixed` */}
       {createPortal(<canvas ref={canvasRef} aria-hidden className="pointer-events-none fixed inset-0 z-40 size-full" />, document.body)}
     </>

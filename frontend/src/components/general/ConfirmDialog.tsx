@@ -1,4 +1,5 @@
 import { Button } from './ButtonsRow'
+import { useI18n } from '../../i18n'
 
 type Props = {
   title: string
@@ -10,7 +11,8 @@ type Props = {
 }
 
 /** Centered modal asking the user to confirm or cancel. */
-export default function ConfirmDialog({ title, message, confirmLabel = 'Yes', cancelLabel = 'No', onConfirm, onCancel }: Props) {
+export default function ConfirmDialog({ title, message, confirmLabel, cancelLabel, onConfirm, onCancel }: Props) {
+  const { t } = useI18n()
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6" onClick={onCancel}>
       <div
@@ -24,9 +26,9 @@ export default function ConfirmDialog({ title, message, confirmLabel = 'Yes', ca
         {message && <p className="text-gray-dark">{message}</p>}
         <div className="flex gap-3">
           <Button variant="neutral" onClick={onCancel}>
-            {cancelLabel}
+            {cancelLabel ?? t('common.no')}
           </Button>
-          <Button onClick={onConfirm}>{confirmLabel}</Button>
+          <Button onClick={onConfirm}>{confirmLabel ?? t('common.yes')}</Button>
         </div>
       </div>
     </div>

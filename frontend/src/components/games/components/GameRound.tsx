@@ -17,8 +17,8 @@ export type InputComponent = ComponentType<{
   /** true once time ran out: the input must stop reacting */
   disabled?: boolean
 }> & {
-  /** Seconds the user has to answer. Default 5. */
-  timeoutSeconds?: number
+  /** Seconds the user has to answer, or a function giving them (for limits that depend on the language). Default 5. */
+  timeoutSeconds?: number | (() => number)
   /** Tailwind height class reserved in the footer, so the display doesn't shift when the input appears. Default h-40. */
   footerHeight?: string
 }
@@ -77,7 +77,7 @@ function RoundPage({ Display, Input, direction, index, completed, loops, answer,
             {/* keyed by round so the clock starts over; runs only while this round waits for an answer */}
             <TimeoutClock
               key={index}
-              seconds={Input.timeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS}
+              seconds={typeof Input.timeoutSeconds === 'function' ? Input.timeoutSeconds() : (Input.timeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS)}
               running={directionSet && completed === index}
               onTimeUp={() => setTimedUp(true)}
               onContinue={endLost}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Button } from '../../general/ButtonsRow'
+import { useI18n } from '../../../i18n'
 
 /** the shaking starts once this fraction of the time has passed, and grows until the end */
 const SHAKE_FROM = 0.5
@@ -58,6 +59,7 @@ function ClockFace({ handRef, svgRef, style, className = '' }: FaceProps) {
  * Remount (change `key`) to start over.
  */
 export default function TimeoutClock({ seconds, running, onTimeUp, onContinue }: Props) {
+  const { t } = useI18n()
   const slotRef = useRef<HTMLDivElement>(null)
   const faceRef = useRef<SVGSVGElement>(null)
   const handRef = useRef<SVGLineElement>(null)
@@ -136,12 +138,12 @@ export default function TimeoutClock({ seconds, running, onTimeUp, onContinue }:
             style={{ opacity: target ? 1 : 0 }}
           >
             <h1 style={{ animationDelay: `${JUMP_MS * 0.6}ms` }} className="fade-in text-5xl text-brand-red">
-              Time&apos;s up!
+              {t('timeout.title')}
             </h1>
             <div ref={spotRef} className="size-40" />
             <div style={{ animationDelay: `${JUMP_MS * 0.6}ms` }} className="fade-in w-full max-w-xl">
               <Button className="w-full" onClick={onContinue}>
-                Continue
+                {t('common.continue')}
               </Button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import SpeechBubble from '../SpeechBubble'
 import type { Direction } from './DirectionDisplay'
+import { useI18n } from '../../../../i18n'
 
 type Props = {
   direction: Direction
@@ -13,12 +14,13 @@ type Props = {
  * Remount (change `key`) to play again.
  */
 export default function SpeechBubbleDisplay({ direction, onDirectionSet }: Props) {
+  const { t } = useI18n()
   const [side] = useState<Direction>(() => (Math.random() < 0.5 ? 'left' : 'right'))
   return (
     <div className="w-full overflow-x-clip">
       <div className={`bubble-from-${side}`} onAnimationEnd={() => onDirectionSet(direction)}>
         <SpeechBubble side={side}>
-          <span className="text-4xl">{direction}</span>
+          <span className="text-4xl">{t(`direction.${direction}`)}</span>
         </SpeechBubble>
       </div>
     </div>

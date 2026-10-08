@@ -1,4 +1,5 @@
 import './ViewSwitch.css'
+import { useI18n } from '../../../../i18n'
 
 type Props = {
   topDown: boolean
@@ -6,10 +7,11 @@ type Props = {
 }
 
 export default function ViewSwitch({ topDown, onChange }: Props) {
+  const { t } = useI18n()
   return (
     <label className="view-switch">
       <input
-        aria-label="Top-down view"
+        aria-label={t('view.topDown')}
         type="checkbox"
         role="switch"
         checked={topDown}

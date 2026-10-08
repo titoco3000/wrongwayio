@@ -8,13 +8,13 @@ import DriveGame from './DriveGame'
 import WordArrowGame from './WordArrowGame'
 import WordSwipeGame from './WordSwipeGame'
 
-/** Shown on the games page as numbered squares, in this order. */
-export const games: { name: string; Component: ComponentType<GameProps> }[] = [
-  { name: 'Arrow, labeled buttons', Component: ArrowLabeledGame },
-  { name: 'Swipe, labeled buttons', Component: SwipeLabeledGame },
-  { name: 'Arrow, typing', Component: ArrowTypingGame },
-  { name: 'Swipe, typing', Component: SwipeTypingGame },
-  { name: 'Word, arrow buttons', Component: WordArrowGame },
-  { name: 'Word, swipe', Component: WordSwipeGame },
-  { name: 'Drive', Component: DriveGame },
+/** `nameKey` is a translation key. Shown on the games page as numbered squares, in this order. */
+export const games: { nameKey: string; Component: ComponentType<GameProps> }[] = [
+  { nameKey: 'game.arrowLabeled', Component: ArrowLabeledGame },
+  { nameKey: 'game.swipeLabeled', Component: SwipeLabeledGame },
+  { nameKey: 'game.arrowTyping', Component: ArrowTypingGame },
+  { nameKey: 'game.swipeTyping', Component: SwipeTypingGame },
+  { nameKey: 'game.wordArrow', Component: WordArrowGame },
+  { nameKey: 'game.wordSwipe', Component: WordSwipeGame },
+  { nameKey: 'game.drive', Component: DriveGame },
 ]

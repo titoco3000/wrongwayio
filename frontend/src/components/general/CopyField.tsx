@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
 import { Button } from './ButtonsRow'
+import { useI18n } from '../../i18n'
 
 const FEEDBACK_MS = 1500
 
 /** Read-only text with a button that copies it to the clipboard. */
 export default function CopyField({ value, label }: { value: string; label: string }) {
+  const { t } = useI18n()
   const input = useRef<HTMLInputElement>(null)
   const [copied, setCopied] = useState(false)
 
@@ -31,7 +33,7 @@ export default function CopyField({ value, label }: { value: string; label: stri
         className="min-w-0 flex-1 rounded-2xl border-2 border-gray-mid bg-paper px-4 py-3 text-ink outline-none focus:border-brand-blue"
       />
       <Button onClick={copy} className="min-w-28 flex-none">
-        {copied ? 'Copied!' : 'Copy'}
+        {copied ? t('common.copied') : t('common.copy')}
       </Button>
     </div>
   )

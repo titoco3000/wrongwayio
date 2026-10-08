@@ -1,5 +1,6 @@
 import { Button } from '../../general/ButtonsRow'
 import Container from '../../general/Container'
+import { useI18n } from '../../../i18n'
 
 type Props = {
   /** consecutive days, including today */
@@ -23,6 +24,7 @@ function Flame() {
 
 /** Full-screen streak counter, shown after the first completed daily challenge of the day. */
 export default function StreakScreen({ streak, onContinue }: Props) {
+  const { t } = useI18n()
   return (
     <Container
       scroll={false}
@@ -31,12 +33,12 @@ export default function StreakScreen({ streak, onContinue }: Props) {
           <Flame />
           <div style={{ animationDelay: '700ms' }} className="fade-in">
             <p className="text-7xl text-brand-blue">{streak}</p>
-            <h1 className="text-3xl">{streak === 1 ? 'day streak' : 'day streak!'}</h1>
-            <p className="mt-2 text-gray-dark">{streak === 1 ? 'Come back tomorrow to keep it going.' : 'Keep it going tomorrow.'}</p>
+            <h1 className="text-3xl">{t('streak.title', { count: streak })}</h1>
+            <p className="mt-2 text-gray-dark">{t('streak.hint', { count: streak })}</p>
           </div>
           <div style={{ animationDelay: '700ms' }} className="fade-in w-full">
             <Button className="w-full" onClick={onContinue}>
-              Continue
+              {t('common.continue')}
             </Button>
           </div>
         </div>

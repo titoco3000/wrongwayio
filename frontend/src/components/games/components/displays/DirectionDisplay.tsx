@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useI18n } from '../../../../i18n'
 
 export type Direction = 'left' | 'right'
 
@@ -16,10 +17,11 @@ type Props = {
  * Spins on mount before settling; remount (change `key`) to spin again.
  */
 export default function DirectionDisplay({ direction, onDirectionSet }: Props) {
+  const { t } = useI18n()
   return (
     <div
       role="img"
-      aria-label={`Arrow pointing ${direction}`}
+      aria-label={t(`direction.arrow.${direction}`)}
       className="flex size-40 items-center justify-center rounded-3xl border-4 border-ink text-8xl shadow-[4px_4px_0_0_var(--color-ink)]"
     >
       <span

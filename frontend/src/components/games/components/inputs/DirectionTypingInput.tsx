@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '../../../general/ButtonsRow'
 import type { Direction } from '../displays/DirectionDisplay'
 import { useClickOrigin, type Point } from '../../hooks/useClickOrigin'
+import { t, useI18n } from '../../../../i18n'
 
 /** delay between letters of the final word's bounce, and the bounce itself, ms */
 const BOUNCE_STAGGER_MS = 90
@@ -13,7 +14,8 @@ const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm']
 
 export type DirectionWords = Record<Direction, string[]>
 
-const ENGLISH: DirectionWords = { left: ['left'], right: ['right'] }
+/** The words to type, taken from the active language's `direction.*` messages. */
+const activeWords = (): DirectionWords => ({ left: [t('direction.left').toLowerCase()], right: [t('direction.right').toLowerCase()] })
 
 type Props = {
   /** called with the direction whose word was typed and the center of the last pressed key */
@@ -27,7 +29,9 @@ type Props = {
 /** Tailwind height class reserved for this input in the game footer. */
 const footerHeight = 'h-72'
 
-export default function DirectionTypingInput({ onSubmit, words = ENGLISH, disabled }: Props) {
+export default function DirectionTypingInput({ onSubmit, words: customWords, disabled }: Props) {
+  const { t } = useI18n()
+  const words = customWords ?? activeWords()
   const [typed, setTyped] = useState('')
   const { origin, onClick } = useClickOrigin()
   // the word was completed: keys are off while it bounces, then it is submitted
@@ -86,7 +90,7 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH, disabl
             {i === ROWS.length - 1 && (
               <Button
                 variant="neutral"
-                aria-label="Backspace"
+                aria-label={t('keyboard.backspace')}
                 disabled={disabled || locked || !typed}
                 className="col-span-4 min-w-0! px-0! py-2! disabled:opacity-20! text-xl"
                 onClick={() => setTyped(typed.slice(0, -1))}
@@ -103,4 +107,12 @@ export default function DirectionTypingInput({ onSubmit, words = ENGLISH, disabl
 
 DirectionTypingInput.footerHeight = footerHeight
 
-DirectionTypingInput.timeoutSeconds = 8
+/** Seconds allowed for the English words (4.5 letters on average); other languages get time in proportion to their word length. */
+const BASE_SECONDS = 8
+const BASE_LETTERS = 4.5
+
+DirectionTypingInput.timeoutSeconds = () => {
+  const words = Object.values(activeWords()).flat()
+  const average = words.reduce((sum, w) => sum + w.length, 0) / words.length
+  return Math.ceil((BASE_SECONDS * average) / BASE_LETTERS)
+}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, ButtonsRow } from '../../../general/ButtonsRow'
 import type { Direction } from '../displays/DirectionDisplay'
 import { useClickOrigin, type Point } from '../../hooks/useClickOrigin'
+import { useI18n } from '../../../../i18n'
 
 const flip = () => Math.random() < 0.5
 
@@ -23,6 +24,7 @@ type Props = {
 
 /** Large buttons labeled "left"/"right" in random order and random red/blue colors. Pops up from the bottom on mount. */
 export default function DirectionWordInput({ onSubmit, disabled }: Props) {
+  const { t } = useI18n()
   const [order] = useState(randomButtons)
   const { origin, onClick } = useClickOrigin()
   return (
@@ -30,7 +32,7 @@ export default function DirectionWordInput({ onSubmit, disabled }: Props) {
       <ButtonsRow onSubmit={(v) => onSubmit(v as Direction, origin.current)}>
         {order.map(({ direction, variant }) => (
           <Button key={direction} value={direction} variant={variant} disabled={disabled} className="py-8! text-3xl" onClick={onClick}>
-            {direction}
+            {t(`direction.${direction}`)}
           </Button>
         ))}
       </ButtonsRow>

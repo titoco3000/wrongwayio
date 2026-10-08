@@ -7,9 +7,11 @@ import MiniGame from '../components/MiniGame'
 import ResultScreen from '../components/ResultScreen'
 import ProgressBar from '../../general/ProgressBar'
 import StackPage from '../../general/StackPage'
+import { useI18n } from '../../../i18n'
 
 /** A speech bubble says a direction; steer the car out of the central tile through that side. */
 export default function DriveGame({ loops, onEnd, progress }: GameProps) {
+  const { t } = useI18n()
   // set when the losing answer came from hitting a wall, so the lose screen can say so
   const [crashed, setCrashed] = useState(false)
   return (
@@ -18,7 +20,7 @@ export default function DriveGame({ loops, onEnd, progress }: GameProps) {
       onEnd={onEnd}
       progress={progress}
       loseScreen={({ onContinue }) => (
-        <ResultScreen won={false} onContinue={onContinue} title={crashed ? 'You crashed!' : undefined} />
+        <ResultScreen won={false} onContinue={onContinue} title={crashed ? t('result.crashed') : undefined} />
       )}
     >
       {({ direction, index, completed, loops, answer }) => (
