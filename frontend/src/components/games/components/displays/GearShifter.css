@@ -1,0 +1,53 @@
+.gear-shifter {
+  display: block;
+  width: 100%;
+  aspect-ratio: 90 / 96;
+  overflow: visible;
+  /* Dragging the lever must not scroll the page. */
+  touch-action: none;
+  user-select: none;
+}
+
+.gear-shifter__groove {
+  fill: none;
+  stroke: #333;
+  stroke-width: 15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gear-shifter__channel {
+  fill: none;
+  stroke: #1a1a1a;
+  stroke-width: 11;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gear-shifter__label {
+  fill: #555;
+  font: 700 9px sans-serif;
+}
+
+.gear-shifter__knob {
+  fill: #c0392b;
+  cursor: grab;
+  stroke: #7a1f16;
+  stroke-width: 1;
+}
+
+.gear-shifter__shine {
+  fill: #fff;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.gear-shifter__pivot {
+  fill: #555;
+}
+
+.gear-shifter__shaft {
+  stroke: #8a8a8a;
+  stroke-width: 4;
+  stroke-linecap: round;
+}

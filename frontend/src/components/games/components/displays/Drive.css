@@ -14,3 +14,14 @@
   width: var(--wheel-size);
   transform: translate(-50%, 50%);
 }
+
+/* Fills the free space left of the wheel, above the wheel's touch zone. */
+.drive__shifter {
+  position: absolute;
+  right: 75%;
+  bottom: 10px;
+  width: calc(50% - var(--wheel-size) / 2 - 4px);
+  max-width: 7rem;
+  z-index: 1;
+  opacity: 0.5;
+}

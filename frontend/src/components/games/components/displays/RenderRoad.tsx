@@ -8,8 +8,10 @@ export const ROAD_ROWS = 5
 
 /** Degrees per second the heading changes at full steering. */
 const TURN_RATE = 60
-/** Forward speed, in main-tile widths per second. */
+/** Speed in first gear, in main-tile widths per second. */
 const FORWARD_SPEED = 0.1
+/** Seconds for the speed to cover about 63% of the way to a newly selected gear's speed. */
+const SPEED_RESPONSE = 0.6
 /** Longest frame time (seconds) that is integrated. */
 const MAX_DT = 0.1
 /** Smallest Y the car reaches; getting there is a crash against the far edge. */
@@ -55,6 +57,8 @@ type Props = {
   tiles?: (RoadTile | undefined)[]
   /** Steering amount, -1 (left) .. 1 (right), read every frame. */
   steerRef: RefObject<number>
+  /** Speed multiplier (negative = reverse), read every frame. */
+  speedRef: RefObject<number>
   /** The car left the main tile and was teleported back to the start. */
   onExit?: (side: ExitSide) => void
   /** The car reached the far edge of the main tile. Fires once per approach. */
@@ -104,8 +108,8 @@ function useUpscaled(src: string): Upscaled {
   return result
 }
 
-export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, onCrash }: Props) {
-  // `steerRef` steers (-1..1). The car always drives forward inside the
+export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, onExit, onCrash }: Props) {
+  // `steerRef` steers (-1..1). The gear (`speedRef`) sets the speed. The car stays inside the
   // main tile; leaving it sideways resets it to the start and rotates its
   // heading by 90deg, so it stays in the central tile while the world seems to
   // move.
@@ -125,6 +129,8 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, on
     // Degrees, 0 = straight up, positive = towards the right.
     let heading = START_HEADING
     let crashed = false
+    // Multiplier actually driven; eases towards `speedRef` instead of jumping.
+    let gearSpeed = speedRef.current
     let last = performance.now()
     let frame = requestAnimationFrame(function tick(now) {
       // Scale by elapsed time so speed is the same at any refresh rate; cap it
@@ -133,8 +139,10 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, on
       last = now
       heading += steerRef.current * TURN_RATE * dt
       const rad = (heading * Math.PI) / 180
-      x += Math.sin(rad) * FORWARD_SPEED * dt
-      y -= Math.cos(rad) * FORWARD_SPEED * dt
+      gearSpeed += (speedRef.current - gearSpeed) * (1 - Math.exp(-dt / SPEED_RESPONSE))
+      const speed = FORWARD_SPEED * gearSpeed
+      x += Math.sin(rad) * speed * dt
+      y -= Math.cos(rad) * speed * dt
       if (y <= CRASH_Y) {
         y = CRASH_Y
         if (!crashed) onCrashRef.current?.()
@@ -165,7 +173,7 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, on
       frame = requestAnimationFrame(tick)
     })
     return () => cancelAnimationFrame(frame)
-  }, [steerRef])
+  }, [steerRef, speedRef])
 
   return (
     <div className={`render-road${topDown ? ' render-road--top' : ''}`} ref={rootRef}>
