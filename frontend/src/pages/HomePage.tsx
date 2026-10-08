@@ -55,9 +55,9 @@ export default function HomePage() {
             <Button className="w-full" onClick={() => push(<GamePage />)}>
               {t('home.minigames')}
             </Button>
-            <Button className="w-full" variant="neutral" onClick={() => push(<DemoPage />)}>
+            {/* <Button className="w-full" variant="neutral" onClick={() => push(<DemoPage />)}>
               Component demo
-            </Button>
+            </Button> */}
           </div>
         }
       />

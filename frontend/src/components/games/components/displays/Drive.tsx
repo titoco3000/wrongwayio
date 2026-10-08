@@ -24,9 +24,11 @@ type Props = {
   onExit?: (side: ExitSide) => void
   /** The car reached the far edge of the central tile. */
   onCrash?: () => void
+  /** Called whenever the engaged gear changes. */
+  onGear?: (gear: Gear) => void
 }
 
-export default function Drive({ onExit, onCrash }: Props) {
+export default function Drive({ onExit, onCrash, onGear }: Props) {
   const steerRef = useRef(0)
   const speedRef = useRef(gearSpeed(START_GEAR))
   const currentSpeedRef = useRef(speedRef.current)
@@ -45,7 +47,12 @@ export default function Drive({ onExit, onCrash }: Props) {
         <SteeringWheel onSteer={(steer) => (steerRef.current = steer)} />
       </div>
       <div className="drive__shifter">
-        <GearShifter onGear={(gear) => (speedRef.current = gearSpeed(gear))} />
+        <GearShifter
+          onGear={(gear) => {
+            speedRef.current = gearSpeed(gear)
+            onGear?.(gear)
+          }}
+        />
       </div>
       <div className="drive__view">
         <ViewSwitch topDown={topDown} onChange={setTopDown} />

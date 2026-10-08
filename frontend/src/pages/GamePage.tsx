@@ -3,6 +3,8 @@ import { useState } from 'react'
 import PagesStack, { useStack } from '../components/general/PagesStack'
 import StackPage from '../components/general/StackPage'
 import { games } from '../components/games/minigames'
+import InfiniteDriveGame from '../components/games/minigames/InfiniteDriveGame'
+import { Button } from '../components/general/ButtonsRow'
 import { useI18n } from '../i18n'
 
 const LOOPS = 5
@@ -23,8 +25,8 @@ function RoundPage({ Game }: { Game: (typeof games)[number]['Component'] }) {
 
 export default function GamePage() {
   const { t } = useI18n()
-  const [playing, setPlaying] = useState<number | null>(null)
-  const Game = playing === null ? null : games[playing].Component
+  const [playing, setPlaying] = useState<number | 'infinite' | null>(null)
+  const Game = playing === null ? null : playing === 'infinite' ? InfiniteDriveGame : games[playing].Component
   return (
     <StackPage
       nav="back"
@@ -44,6 +46,9 @@ export default function GamePage() {
               </button>
             ))}
           </div>
+          <Button className="mt-6 w-full" onClick={() => setPlaying('infinite')}>
+            {t('infinite.title')}
+          </Button>
           {Game && <PagesStack initial={<RoundPage Game={Game} />} onEmpty={() => setPlaying(null)} />}
         </div>
       }

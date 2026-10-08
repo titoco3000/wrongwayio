@@ -4,6 +4,7 @@
  */
 
 import { t } from '../i18n'
+import type { Records as InfiniteRecords } from '../infinite/infiniteDrive'
 
 export type User = {
   name: string
@@ -11,6 +12,8 @@ export type User = {
   premiumUntil: number | null
   /** who gifted the current premium pass */
   premiumFrom: string | null
+  /** best results of infinite driving; missing until the first run (and on accounts made before it existed) */
+  infiniteRecords?: InfiniteRecords | null
 }
 
 export type ApiErrorCode = 'name-taken' | 'invalid-name' | 'not-found' | 'offline'
@@ -84,6 +87,17 @@ export const api = {
     const user: User = { name: cleanName(name), premiumUntil: null, premiumFrom: null }
     writeTable({ ...table, [keyOf(name)]: user })
     return user
+  },
+
+  /** Replaces the user's infinite driving records. */
+  async saveInfiniteRecords(name: string, records: InfiniteRecords): Promise<User> {
+    await delay()
+    const table = readTable()
+    const user = table[keyOf(name)]
+    if (!user) throw new ApiError('not-found')
+    const updated: User = { ...user, infiniteRecords: records }
+    writeTable({ ...table, [keyOf(name)]: updated })
+    return updated
   },
 
   /** Adds `days` of premium, on top of whatever is left. */

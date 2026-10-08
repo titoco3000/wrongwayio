@@ -9,7 +9,7 @@ const RESULT_PREFIX = 'dailyChallenge'
 const STREAK_PREFIX = 'dailyStreak'
 
 // users and the guest never share a key, whatever the user is called
-const ownerId = (owner: Owner) => (owner === null ? 'guest' : `user:${owner.trim().toLowerCase()}`)
+export const ownerId = (owner: Owner) => (owner === null ? 'guest' : `user:${owner.trim().toLowerCase()}`)
 const resultKey = (owner: Owner) => `${RESULT_PREFIX}:${ownerId(owner)}`
 const streakKey = (owner: Owner) => `${STREAK_PREFIX}:${ownerId(owner)}`
 

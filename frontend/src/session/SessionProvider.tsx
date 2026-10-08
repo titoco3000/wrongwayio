@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, type User } from '../api'
 import { adoptGuestData } from '../daily/dailyChallenge'
+import { clearGuestRecords, loadGuestRecords, saveGuestRecords } from '../infinite/infiniteDrive'
 import { isNative, SITE_URL } from '../native/platform'
 
 const SESSION_KEY = 'session'
@@ -82,6 +83,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const login = useCallback((u: User) => {
     write(SESSION_KEY, u.name)
     adoptGuestData(u.name)
+    // a user with no records of their own takes over the guest's
+    const guest = loadGuestRecords()
+    if (!u.infiniteRecords && guest) {
+      clearGuestRecords()
+      api
+        .saveInfiniteRecords(u.name, guest)
+        .then(setUser)
+        .catch(() => saveGuestRecords(guest))
+    }
     setUser(u)
   }, [])
   const logout = useCallback(() => {

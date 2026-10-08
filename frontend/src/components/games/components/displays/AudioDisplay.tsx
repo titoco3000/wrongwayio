@@ -36,7 +36,9 @@ export const AUDIO_TIMEOUT_SECONDS = 8
 type Props = {
   direction: Direction
   /** called once the first playback is over */
-  onDirectionSet: (direction: Direction) => void
+  onDirectionSet?: (direction: Direction) => void
+  /** Tailwind size class of the button. Default size-40. */
+  size?: string
 }
 
 /**
@@ -44,14 +46,14 @@ type Props = {
  * be played again as often as wanted; if the browser blocks the autoplay, pressing the button is the first play.
  * Remount (change `key`) for a new round.
  */
-export default function AudioDisplay({ direction, onDirectionSet }: Props) {
+export default function AudioDisplay({ direction, onDirectionSet, size = 'size-40' }: Props) {
   const { t, language } = useI18n()
   const [src] = useState(() => pickRecording(direction, language, t(`direction.${direction}`)))
   const audio = useRef<HTMLAudioElement | null>(null)
   const [plays, setPlays] = useState(0)
   const [playing, setPlaying] = useState(false)
-  const onSet = useRef(() => onDirectionSet(direction))
-  onSet.current = () => onDirectionSet(direction)
+  const onSet = useRef(() => onDirectionSet?.(direction))
+  onSet.current = () => onDirectionSet?.(direction)
   const announced = useRef(false)
   // the growing ring is moved straight on the element every frame, not through React state
   const ring = useRef<SVGCircleElement>(null)
@@ -113,14 +115,14 @@ export default function AudioDisplay({ direction, onDirectionSet }: Props) {
       onClick={play}
       disabled={!canPlay}
       aria-label={plays === 0 ? t('audio.play') : t('audio.replay')}
-      className="relative flex size-40 cursor-pointer items-center justify-center text-ink transition active:scale-95 disabled:cursor-default"
+      className={`relative flex ${size} cursor-pointer items-center justify-center text-ink transition active:scale-95 disabled:cursor-default`}
     >
       <svg viewBox="0 0 100 100" aria-hidden className="absolute inset-0 size-full -rotate-90" fill="none">
         <circle cx="50" cy="50" r="45" strokeWidth="3" className="stroke-gray-mid" />
         {/* thicker ring on top of the outline; pathLength 1 lets the offset be the fraction left to draw */}
         <circle ref={ring} cx="50" cy="50" r="45" strokeWidth="8" pathLength="1" strokeDasharray="1" strokeDashoffset="1" className="stroke-gray-mid" />
       </svg>
-      <svg viewBox="0 0 24 24" aria-hidden className="relative size-16" fill="currentColor">
+      <svg viewBox="0 0 24 24" aria-hidden className="relative size-2/5" fill="currentColor">
         <path d="M3 9v6h4l5 4V5L7 9H3z" />
         {playing && <path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />}
       </svg>
