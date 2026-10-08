@@ -4,6 +4,8 @@ import { Button, ButtonsRow } from '../components/general/ButtonsRow'
 import PagesStack, { useStack } from '../components/general/PagesStack'
 import Pigeon from '../components/general/Pigeon'
 import { Option, Select } from '../components/general/Select'
+import AudioDisplay from '../components/games/components/displays/AudioDisplay'
+import type { Direction } from '../components/games/components/displays/DirectionDisplay'
 import Drive from '../components/games/components/displays/Drive'
 import SpeechBubble from '../components/games/components/SpeechBubble'
 import StackPage from '../components/general/StackPage'
@@ -36,6 +38,25 @@ function InnerPage({ depth, nav }: { depth: number; nav: 'back' | 'close' }) {
         </div>
       }
     />
+  )
+}
+
+function AudioDemo() {
+  const [round, setRound] = useState({ id: 0, direction: 'left' as Direction })
+  const [heard, setHeard] = useState(0)
+  return (
+    <>
+      <div className="flex justify-center">
+        <AudioDisplay key={round.id} direction={round.direction} onDirectionSet={() => setHeard((n) => n + 1)} />
+      </div>
+      <p>Direction: <b>{round.direction}</b>, first playback finished {heard}x</p>
+      <Button
+        variant="neutral"
+        onClick={() => setRound((r) => ({ id: r.id + 1, direction: Math.random() < 0.5 ? 'left' : 'right' }))}
+      >
+        New round
+      </Button>
+    </>
   )
 }
 
@@ -104,6 +125,10 @@ function DemoBody() {
 
       <Section title="Drive">
         <Drive />
+      </Section>
+
+      <Section title="AudioDisplay">
+        <AudioDemo />
       </Section>
 
       <Section title="CollapsiblePanel">

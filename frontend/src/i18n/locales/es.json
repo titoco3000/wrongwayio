@@ -19,6 +19,8 @@
   "direction.right": "derecha",
   "direction.arrow.left": "Flecha hacia la izquierda",
   "direction.arrow.right": "Flecha hacia la derecha",
+  "audio.play": "Reproducir la palabra",
+  "audio.replay": "Reproducir la palabra otra vez",
   "swipe.question": "¿Hacia qué dirección fue el deslizamiento?",
   "swipe.hint": "Desliza a la izquierda o a la derecha",
   "keyboard.backspace": "Borrar",
@@ -48,6 +50,9 @@
   "game.swipeTyping": "Deslizar, escribiendo",
   "game.wordArrow": "Palabra, botones de flecha",
   "game.wordSwipe": "Palabra, deslizar",
+  "game.audioArrow": "Audio, botones de flecha",
+  "game.audioSwipe": "Audio, deslizar",
+  "game.audioDrive": "Audio, conducir",
   "game.drive": "Conducir",
 
   "result.won": "¡Lo lograste!",

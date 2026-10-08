@@ -30,23 +30,28 @@ export type GameProps = {
   progress?: ChallengeProgress
 }
 
-type Props = GameProps & { Display: DisplayComponent; Input: InputComponent }
+type Props = GameProps & {
+  Display: DisplayComponent
+  Input: InputComponent
+  /** overrides the input's own time limit, e.g. when the display itself takes time to present the direction */
+  timeoutSeconds?: number
+}
 
 /**
  * Round flow shared by every direction game: the display presents a direction, the input answers,
  * and one wrong answer loses. What the display and input mean is up to the game type. Renders a closeable page.
  */
-export default function GameRound({ loops, onEnd, progress, Display, Input }: Props) {
+export default function GameRound({ loops, onEnd, progress, Display, Input, timeoutSeconds }: Props) {
   return (
     <MiniGame loops={loops} onEnd={onEnd} progress={progress}>
       {({ direction, index, completed, loops, answer, endLost }) => (
-        <RoundPage Display={Display} Input={Input} direction={direction} index={index} completed={completed} loops={loops} answer={answer} endLost={endLost} />
+        <RoundPage Display={Display} Input={Input} timeoutSeconds={timeoutSeconds} direction={direction} index={index} completed={completed} loops={loops} answer={answer} endLost={endLost} />
       )}
     </MiniGame>
   )
 }
 
-type RoundProps = { Display: DisplayComponent; Input: InputComponent; direction: Direction; index: number; completed: number; loops: number; answer: (value: Direction) => boolean; endLost: () => void }
+type RoundProps = { Display: DisplayComponent; Input: InputComponent; timeoutSeconds?: number; direction: Direction; index: number; completed: number; loops: number; answer: (value: Direction) => boolean; endLost: () => void }
 
 type Burst = Point & { id: number }
 
@@ -54,7 +59,7 @@ let nextBurst = 0
 
 const DEFAULT_TIMEOUT_SECONDS = 5
 
-function RoundPage({ Display, Input, direction, index, completed, loops, answer, endLost }: RoundProps) {
+function RoundPage({ Display, Input, timeoutSeconds, direction, index, completed, loops, answer, endLost }: RoundProps) {
   // index of the round whose arrow finished spinning; derived so the page (and its progress bar) stays mounted between rounds
   const [setRound, setSetRound] = useState(-1)
   const directionSet = setRound === index
@@ -77,7 +82,7 @@ function RoundPage({ Display, Input, direction, index, completed, loops, answer,
             {/* keyed by round so the clock starts over; runs only while this round waits for an answer */}
             <TimeoutClock
               key={index}
-              seconds={typeof Input.timeoutSeconds === 'function' ? Input.timeoutSeconds() : (Input.timeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS)}
+              seconds={timeoutSeconds ?? (typeof Input.timeoutSeconds === 'function' ? Input.timeoutSeconds() : (Input.timeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS))}
               running={directionSet && completed === index}
               onTimeUp={() => setTimedUp(true)}
               onContinue={endLost}

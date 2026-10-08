@@ -2,15 +2,27 @@ import { useState } from 'react'
 import Drive from '../components/displays/Drive'
 import type { Direction } from '../components/displays/DirectionDisplay'
 import SpeechBubbleDisplay from '../components/displays/SpeechBubbleDisplay'
-import type { GameProps } from '../components/GameRound'
+import type { DisplayComponent, GameProps } from '../components/GameRound'
 import MiniGame from '../components/MiniGame'
 import ResultScreen from '../components/ResultScreen'
 import ProgressBar from '../../general/ProgressBar'
 import StackPage from '../../general/StackPage'
 import { useI18n } from '../../../i18n'
 
+type DriveProps = GameProps & {
+  /** presents the direction to steer to */
+  Display: DisplayComponent
+  /** Tailwind min-height class reserved for the display, so the road doesn't shift. Default min-h-28. */
+  displayHeight?: string
+}
+
 /** A speech bubble says a direction; steer the car out of the central tile through that side. */
-export default function DriveGame({ loops, onEnd, progress }: GameProps) {
+export default function DriveGame(props: GameProps) {
+  return <DriveWithDisplay {...props} Display={SpeechBubbleDisplay} />
+}
+
+/** The drive game with any display announcing the direction. */
+export function DriveWithDisplay({ loops, onEnd, progress, Display, displayHeight }: DriveProps) {
   const { t } = useI18n()
   // set when the losing answer came from hitting a wall, so the lose screen can say so
   const [crashed, setCrashed] = useState(false)
@@ -30,6 +42,8 @@ export default function DriveGame({ loops, onEnd, progress }: GameProps) {
           completed={completed}
           loops={loops}
           answer={answer}
+          Display={Display}
+          displayHeight={displayHeight}
           onCrashed={() => setCrashed(true)}
         />
       )}
@@ -43,11 +57,13 @@ type RoundProps = {
   completed: number
   loops: number
   answer: (value: Direction) => boolean
+  Display: DisplayComponent
+  displayHeight?: string
   /** called when a crash is about to be graded as the wrong answer */
   onCrashed: () => void
 }
 
-function DriveRound({ direction, index, completed, loops, answer, onCrashed }: RoundProps) {
+function DriveRound({ direction, index, completed, loops, answer, Display, displayHeight = 'min-h-28', onCrashed }: RoundProps) {
   // index of the round whose bubble arrived; derived so the page stays mounted between rounds
   const [setRound, setSetRound] = useState(-1)
   // The very first bubble waits for the first event (crash, left or right), which isn't graded.
@@ -61,10 +77,10 @@ function DriveRound({ direction, index, completed, loops, answer, onCrashed }: R
       header={<ProgressBar value={completed} max={loops} />}
       body={
         <div className="flex flex-col gap-4 p-6">
-          <div className="min-h-28">
+          <div className={`flex justify-center ${displayHeight}`}>
             {/* keyed by round so the bubble comes in again, even when the direction repeats */}
             {!waiting && (
-              <SpeechBubbleDisplay key={index} direction={direction} onDirectionSet={() => setSetRound(index)} />
+              <Display key={index} direction={direction} onDirectionSet={() => setSetRound(index)} />
             )}
           </div>
           <Drive

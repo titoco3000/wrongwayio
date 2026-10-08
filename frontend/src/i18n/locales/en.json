@@ -19,6 +19,8 @@
   "direction.right": "right",
   "direction.arrow.left": "Arrow pointing left",
   "direction.arrow.right": "Arrow pointing right",
+  "audio.play": "Play the word",
+  "audio.replay": "Play the word again",
   "swipe.question": "The swipe was to what direction?",
   "swipe.hint": "Swipe left or right",
   "keyboard.backspace": "Backspace",
@@ -48,6 +50,9 @@
   "game.swipeTyping": "Swipe, typing",
   "game.wordArrow": "Word, arrow buttons",
   "game.wordSwipe": "Word, swipe",
+  "game.audioArrow": "Audio, arrow buttons",
+  "game.audioSwipe": "Audio, swipe",
+  "game.audioDrive": "Audio, drive",
   "game.drive": "Drive",
 
   "result.won": "You nailed it!",

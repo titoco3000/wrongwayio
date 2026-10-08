@@ -7,6 +7,9 @@ import SwipeTypingGame from './SwipeTypingGame'
 import DriveGame from './DriveGame'
 import WordArrowGame from './WordArrowGame'
 import WordSwipeGame from './WordSwipeGame'
+import AudioArrowGame from './AudioArrowGame'
+import AudioDriveGame from './AudioDriveGame'
+import AudioSwipeGame from './AudioSwipeGame'
 
 /** `nameKey` is a translation key. Shown on the games page as numbered squares, in this order. */
 export const games: { nameKey: string; Component: ComponentType<GameProps> }[] = [
@@ -17,4 +20,7 @@ export const games: { nameKey: string; Component: ComponentType<GameProps> }[] =
   { nameKey: 'game.wordArrow', Component: WordArrowGame },
   { nameKey: 'game.wordSwipe', Component: WordSwipeGame },
   { nameKey: 'game.drive', Component: DriveGame },
+  { nameKey: 'game.audioArrow', Component: AudioArrowGame },
+  { nameKey: 'game.audioSwipe', Component: AudioSwipeGame },
+  { nameKey: 'game.audioDrive', Component: AudioDriveGame },
 ]

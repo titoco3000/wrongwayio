@@ -1,6 +1,8 @@
 import GameRound, { type DisplayComponent, type GameProps, type InputComponent } from '../GameRound'
 
 type Props = GameProps & {
+  /** overrides the input's time limit */
+  timeoutSeconds?: number
   /** writes or speaks a direction */
   Display: DisplayComponent
   /** the user acts out the direction, e.g. by pressing an arrow */
