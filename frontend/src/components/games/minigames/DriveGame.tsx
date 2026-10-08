@@ -29,6 +29,9 @@ type RoundProps = {
 function DriveRound({ direction, index, completed, loops, answer }: RoundProps) {
   // index of the round whose bubble arrived; derived so the page stays mounted between rounds
   const [setRound, setSetRound] = useState(-1)
+  // The very first bubble waits for the first event (crash, left or right), which isn't graded.
+  const [started, setStarted] = useState(false)
+  const waiting = index === 0 && !started
   const listening = setRound === index && completed === index
 
   return (
@@ -39,15 +42,24 @@ function DriveRound({ direction, index, completed, loops, answer }: RoundProps) 
         <div className="flex flex-col gap-4 p-6">
           <div className="min-h-28">
             {/* keyed by round so the bubble comes in again, even when the direction repeats */}
-            <SpeechBubbleDisplay key={index} direction={direction} onDirectionSet={() => setSetRound(index)} />
+            {!waiting && (
+              <SpeechBubbleDisplay key={index} direction={direction} onDirectionSet={() => setSetRound(index)} />
+            )}
           </div>
           <Drive
             onExit={(side) => {
+              if (waiting) {
+                if (side !== 'back') setStarted(true)
+                return
+              }
               // Leaving through the back is neither answer; the car just goes around again.
               if (listening && side !== 'back') answer(side)
             }}
             // Crashing is a wrong answer: the opposite side can never be the asked one.
-            onCrash={() => listening && answer(direction === 'left' ? 'right' : 'left')}
+            onCrash={() => {
+              if (waiting) return setStarted(true)
+              if (listening) answer(direction === 'left' ? 'right' : 'left')
+            }}
           />
         </div>
       }

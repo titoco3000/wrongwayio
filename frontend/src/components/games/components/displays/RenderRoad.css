@@ -1,8 +1,8 @@
 .render-road {
-  /* Defaults until the first frame: car at the bottom-centre of the main tile. */
-  --cam-x: 50%;
-  --cam-y: 66.667%;
-  --road-rot: 0deg;
+  /* Defaults until the first frame: car at the start spot of the main tile, facing right. */
+  --cam-x: 66%;
+  --cam-y: 50%;
+  --road-rot: -90deg;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -104,4 +104,5 @@
   margin: -0.5px;
   max-width: none;
   object-fit: cover;
+  image-rendering: pixelated;
 }

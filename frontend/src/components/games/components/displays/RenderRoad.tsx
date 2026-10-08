@@ -15,8 +15,12 @@ const MAX_DT = 0.1
 /** Smallest Y the car reaches; getting there is a crash against the far edge. */
 const CRASH_Y = 0.2
 /** Car start inside the main tile (0..1 each axis, y grows downwards). */
-const START_X = 0.5
-const START_Y = 1
+const START_X = 0.66
+const START_Y = 0.5
+/** Y the car re-enters at after leaving the main tile (the bottom edge). */
+const RESPAWN_Y = 1
+/** Start heading in degrees, 90 = pointing right. */
+const START_HEADING = 90
 /** The main tile: centre tile (a road row and a back-tile row sit below). */
 const MAIN_COL = Math.floor(ROAD_COLS / 2)
 const MAIN_ROW = Math.floor(ROAD_ROWS / 2)
@@ -74,7 +78,7 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, on
     let x = START_X
     let y = START_Y
     // Degrees, 0 = straight up, positive = towards the right.
-    let heading = 0
+    let heading = START_HEADING
     let crashed = false
     let last = performance.now()
     let frame = requestAnimationFrame(function tick(now) {
@@ -97,7 +101,7 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, on
         // Out through the bottom: mirror X and turn around.
         heading += 180
         x = 1 - x
-        y = START_Y
+        y = RESPAWN_Y
         onExitRef.current?.('back')
       } else if (x > 1 || x < 0) {
         // Out through the right turns the heading back left, and vice versa.
@@ -106,7 +110,7 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, on
         const right = x > 1
         heading -= right ? 90 : -90
         x = right ? y : 1 - y
-        y = START_Y
+        y = RESPAWN_Y
         onExitRef.current?.(right ? 'right' : 'left')
       }
       const style = rootRef.current?.style
