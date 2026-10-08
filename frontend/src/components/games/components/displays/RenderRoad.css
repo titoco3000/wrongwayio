@@ -51,7 +51,7 @@
 }
 
 /* Top-down: no perspective, the whole board fits the surface and stays still,
-   back tiles lie flat, and the red arrow shows the camera instead. */
+   back tiles lie flat, and the red car shows the camera instead. */
 .render-road--top .render-road__surface {
   perspective: none;
 }
@@ -60,7 +60,7 @@
   --road-stand: translateY(0);
   top: 50%;
   transform-origin: 50% 50%;
-  transform: translate(-50%, -50%) scale(calc(1 / var(--cols)));
+  transform: translate(-50%, -50%) scale(calc(1 / (var(--cols) * var(--res))));
 }
 
 .render-road__camera {
@@ -77,15 +77,30 @@
   display: block;
 }
 
-/* Tail on the camera point, tip pointing where the camera looks. */
-.render-road__arrow {
+/* Top-down car, centred on the camera point with its nose where the camera looks. */
+.render-road__car {
   position: absolute;
   left: var(--cam-x);
   top: var(--cam-y);
-  width: calc(100% / var(--cols) * 0.4);
+  width: calc(100% / var(--cols) * 0.18);
   aspect-ratio: 1 / 2;
-  transform: translate(-50%, -100%);
+  transform: translate(-50%, -50%);
+}
+
+.render-road__car-body {
   fill: red;
+}
+
+.render-road__car-wheel {
+  fill: #222;
+}
+
+.render-road__car-glass {
+  fill: #2b2b2b;
+}
+
+.render-road__car-light {
+  fill: gold;
 }
 
 .render-road__tile {

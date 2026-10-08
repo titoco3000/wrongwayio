@@ -219,10 +219,18 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, 
               </div>
             )
           })}
-          {/* Top-down only: where the camera is and which way it faces. */}
+          {/* Top-down only: where the car is and which way it faces. */}
           <div className="render-road__camera">
-            <svg className="render-road__arrow" viewBox="0 0 50 100" aria-hidden="true">
-              <path d="M25 0 L50 40 H33 V100 H17 V40 H0 Z" />
+            <svg className="render-road__car" viewBox="0 0 50 100" aria-hidden="true">
+              <rect className="render-road__car-wheel" x="1" y="16" width="8" height="22" rx="3" />
+              <rect className="render-road__car-wheel" x="41" y="16" width="8" height="22" rx="3" />
+              <rect className="render-road__car-wheel" x="1" y="64" width="8" height="22" rx="3" />
+              <rect className="render-road__car-wheel" x="41" y="64" width="8" height="22" rx="3" />
+              <rect className="render-road__car-body" x="5" y="2" width="40" height="96" rx="14" />
+              <rect className="render-road__car-light" x="9" y="4" width="10" height="7" rx="3" />
+              <rect className="render-road__car-light" x="31" y="4" width="10" height="7" rx="3" />
+              <path className="render-road__car-glass" d="M11 34 Q25 28 39 34 L37 48 H13 Z" />
+              <path className="render-road__car-glass" d="M13 70 H37 L39 80 Q25 85 11 80 Z" />
             </svg>
           </div>
         </div>
