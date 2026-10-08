@@ -61,6 +61,49 @@ type Props = {
   onCrash?: () => void
 }
 
+/**
+ * The image enlarged `UPSCALE` times with hard pixel edges. Close-up tiles then
+ * stay sharp with normal smoothing, which (unlike `image-rendering: pixelated`)
+ * doesn't shimmer on the far, tilted tiles while the board moves.
+ *
+ * Smoothing fades a tile's outermost texels into transparency, which shows as
+ * a seam between tiles. So the result also carries `EDGE` extra texels on each
+ * side, copied from the border: the fade happens out there, under the
+ * neighbouring tile. `bleed` is that margin as a fraction of the tile size.
+ */
+const UPSCALE = 8
+const EDGE = 2
+type Upscaled = { url: string; bleed: number }
+function useUpscaled(src: string): Upscaled {
+  const [result, setResult] = useState<Upscaled>({ url: src, bleed: 0 })
+  useEffect(() => {
+    let cancelled = false
+    const img = new Image()
+    img.onload = () => {
+      const w = img.naturalWidth * UPSCALE
+      const h = img.naturalHeight * UPSCALE
+      const canvas = document.createElement('canvas')
+      canvas.width = w + 2 * EDGE
+      canvas.height = h + 2 * EDGE
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.imageSmoothingEnabled = false
+      ctx.drawImage(img, EDGE, EDGE, w, h)
+      // Sides first, then top and bottom over the full width, which fills the corners.
+      ctx.drawImage(canvas, EDGE, EDGE, 1, h, 0, EDGE, EDGE, h)
+      ctx.drawImage(canvas, EDGE + w - 1, EDGE, 1, h, EDGE + w, EDGE, EDGE, h)
+      ctx.drawImage(canvas, 0, EDGE, canvas.width, 1, 0, 0, canvas.width, EDGE)
+      ctx.drawImage(canvas, 0, EDGE + h - 1, canvas.width, 1, 0, EDGE + h, canvas.width, EDGE)
+      if (!cancelled) setResult({ url: canvas.toDataURL(), bleed: EDGE / w })
+    }
+    img.src = src
+    return () => {
+      cancelled = true
+    }
+  }, [src])
+  return result
+}
+
 export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, onCrash }: Props) {
   // `steerRef` steers (-1..1). The car always drives forward inside the
   // main tile; leaving it sideways resets it to the start and rotates its
@@ -68,6 +111,8 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, on
   // move.
   const [topDown, setTopDown] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const roadTex = useUpscaled(crossroads)
+  const backTex = useUpscaled(back)
   // Latest callbacks, so the animation loop never restarts when they change.
   const onExitRef = useRef(onExit)
   onExitRef.current = onExit
@@ -136,6 +181,7 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, on
           {Array.from({ length: ROAD_COLS * ROAD_ROWS }, (_, i) => {
             const tile = tiles[i] ?? { type: 'back' as const }
             const standing = tile.type === 'back'
+            const tex = standing ? backTex : roadTex
             // Back tiles stand on the far (top) edge of their cell at rotation 0.
             // Rotating around the cell centre carries that edge to the left
             // (-90), right (90) or near (180) side.
@@ -150,7 +196,16 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, onExit, on
                 className={`render-road__tile render-road__tile--${tile.type}`}
                 style={{ transformOrigin: origin, transform }}
               >
-                <img src={standing ? back : crossroads} alt="" draggable={false} />
+                <img
+                  src={tex.url}
+                  alt=""
+                  draggable={false}
+                  style={
+                    tex.bleed
+                      ? { width: `${(1 + 2 * tex.bleed) * 100}%`, height: `${(1 + 2 * tex.bleed) * 100}%`, margin: `${-tex.bleed * 100}%` }
+                      : undefined
+                  }
+                />
               </div>
             )
           })}

@@ -25,6 +25,9 @@
   /* One cell is as wide as the surface, so the camera sees edge to edge of the
      cell it stands in. */
   --tilt: 88deg;
+  /* The board is laid out --res times larger and scaled back down, so the
+     browser draws it at a higher resolution instead of stretching a small one. */
+  --res: 4;
   /* --cam-x, --cam-y and --road-rot (car position in the main tile and
      board rotation) are set from RenderRoad.tsx on the root. */
   /* How back tiles stand up in their cell. */
@@ -33,7 +36,7 @@
   /* Put the camera point on the bottom-centre of the surface. */
   left: 50%;
   top: 100%;
-  width: calc(100% * var(--cols));
+  width: calc(100% * var(--cols) * var(--res));
   aspect-ratio: calc(var(--cols) / var(--rows));
   display: grid;
   grid-template-columns: repeat(var(--cols), 1fr);
@@ -44,7 +47,7 @@
      flat around the camera, then the camera point is moved onto the surface. */
   transform: translate(calc(-1 * var(--cam-x)), calc(-1 * var(--cam-y)))
     rotateX(var(--tilt)) rotateZ(var(--road-rot)) translateZ(100px)
-    scale(4) scaleZ(2.5);
+    scale(calc(4 / var(--res))) scaleZ(calc(2.5 / var(--res)));
 }
 
 /* Top-down: no perspective, the whole board fits the surface and stays still,
@@ -104,5 +107,4 @@
   margin: -0.5px;
   max-width: none;
   object-fit: cover;
-  image-rendering: pixelated;
 }
