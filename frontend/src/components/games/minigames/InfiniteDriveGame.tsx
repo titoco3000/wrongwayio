@@ -5,6 +5,7 @@ import type { Direction } from '../components/displays/DirectionDisplay'
 import SpeechBubbleDisplay from '../components/displays/SpeechBubbleDisplay'
 import type { GameProps } from '../components/GameRound'
 import InfiniteResultScreen from '../components/InfiniteResultScreen'
+import LoginPromptScreen from '../components/LoginPromptScreen'
 import StackPage from '../../general/StackPage'
 import { useI18n } from '../../../i18n'
 import { useSession } from '../../../session/SessionProvider'
@@ -43,6 +44,8 @@ export default function InfiniteDriveGame({ onEnd }: GameProps) {
   const [now, setNow] = useState(Date.now)
   const [score, setScore] = useState(0)
   const [ended, setEnded] = useState<Ended | null>(null)
+  // after a record, a guest is offered to log in
+  const [prompting, setPrompting] = useState(false)
 
   // read by the car's callbacks, which must see the latest values without re-rendering the road
   const scoreRef = useRef(0)
@@ -70,6 +73,12 @@ export default function InfiniteDriveGame({ onEnd }: GameProps) {
       else saveGuestRecords(records)
     }
     setEnded({ cause, run, broken })
+  }
+
+  const leave = () => {
+    if (doneRef.current) return
+    doneRef.current = true
+    onEnd(false)
   }
 
   const start = () => {
@@ -132,13 +141,10 @@ export default function InfiniteDriveGame({ onEnd }: GameProps) {
       {ended && (
         <InfiniteResultScreen
           {...ended}
-          onContinue={() => {
-            if (doneRef.current) return
-            doneRef.current = true
-            onEnd(false)
-          }}
+          onContinue={() => (!user && ended.broken.length > 0 ? setPrompting(true) : leave())}
         />
       )}
+      {prompting && <LoginPromptScreen reason="record" onContinue={leave} />}
     </>
   )
 }

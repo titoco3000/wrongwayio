@@ -2,6 +2,7 @@ import { useState } from 'react'
 import PagesStack, { useStack } from '../components/general/PagesStack'
 import { games } from '../components/games/minigames'
 import StreakScreen from '../components/games/components/StreakScreen'
+import LoginPromptScreen from '../components/games/components/LoginPromptScreen'
 import { api } from '../api'
 import { useSession } from '../session/SessionProvider'
 import { DAILY_GAME_COUNT, dailyGameIndices, saveDailyResult, todayKey } from '../daily/dailyChallenge'
@@ -19,16 +20,19 @@ function Run({ record }: { record: boolean }) {
   const total = Math.min(DAILY_GAME_COUNT, order.length)
   // set after the first win of the day, to show the streak screen
   const [streak, setStreak] = useState<number | null>(null)
+  // a guest is then offered to log in, so the win counts
+  const [prompting, setPrompting] = useState(false)
 
   const finish = (result: 'done' | 'failed') => {
     const newStreak = record ? saveDailyResult(user?.name ?? null, result) : 0
     // the account keeps its own copy for the scoreboard; a failed sync leaves the local result as is
-    if (record && user) api.saveDailyResult(user.name, todayKey(), result).then(update).catch(() => {})
+    if (record && user) api.saveDailyResult(user.name, todayKey(), result, result === 'done' ? newStreak : undefined).then(update).catch(() => {})
     if (record && result === 'done') setStreak(newStreak)
     else close()
   }
 
-  if (streak !== null) return <StreakScreen streak={streak} onContinue={close} />
+  if (prompting) return <LoginPromptScreen reason="daily" onContinue={close} />
+  if (streak !== null) return <StreakScreen streak={streak} onContinue={() => (user ? close() : setPrompting(true))} />
 
   return (
     <Game

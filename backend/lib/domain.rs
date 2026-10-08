@@ -114,6 +114,7 @@ pub struct User {
 
 const DAY_MS: i64 = 24 * 60 * 60 * 1000;
 pub const MAX_PREMIUM_DAYS: u32 = 365;
+const MAX_STREAK: u32 = 10_000;
 
 fn parse_date(date: &str) -> Result<NaiveDate, ApiError> {
     NaiveDate::parse_from_str(date, "%Y-%m-%d")
@@ -172,6 +173,15 @@ impl User {
             result,
         });
         Ok(())
+    }
+
+    /// A streak of `count` wins ending on `date`, brought from the player's device (e.g. earned as a guest).
+    /// Only applies when it ends on the streak's last win and beats the one kept here.
+    pub fn adopt_streak(&mut self, date: &str, count: u32) {
+        if self.streak.last_date == date && count > self.streak.count {
+            self.streak.count = count.min(MAX_STREAK);
+            self.longest_streak = self.longest_streak.max(self.streak.count);
+        }
     }
 
     /// Adds `days` of premium on top of whatever is left.
@@ -323,6 +333,20 @@ mod tests {
         assert!(u
             .record_daily("2026-03-06", DailyResult::Done, today)
             .is_ok());
+    }
+
+    #[test]
+    fn a_longer_streak_from_the_device_is_adopted() {
+        let mut u = user();
+        let today = day("2026-03-09");
+        u.record_daily("2026-03-09", DailyResult::Done, today)
+            .unwrap();
+        u.adopt_streak("2026-03-08", 9);
+        assert_eq!(u.streak.count, 1);
+        u.adopt_streak("2026-03-09", 9);
+        assert_eq!((u.streak.count, u.longest_streak), (9, 9));
+        u.adopt_streak("2026-03-09", 3);
+        assert_eq!(u.streak.count, 9);
     }
 
     #[test]

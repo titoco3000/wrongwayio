@@ -152,7 +152,7 @@ const stubApi = {
   },
 
   /** Records today's daily challenge result. The stub keeps results on this device only, so there is nothing to do. */
-  async saveDailyResult(name: string, _date: string, _result: 'done' | 'failed'): Promise<User> {
+  async saveDailyResult(name: string, _date: string, _result: 'done' | 'failed', _streak?: number): Promise<User> {
     await delay()
     const user = readTable()[keyOf(name)]
     if (!user) throw new ApiError('not-found')
@@ -187,7 +187,7 @@ const realApi: typeof stubApi = {
   },
   createUser: (name) => request<User>('/users', { name: cleanName(name) }),
   saveInfiniteRecords: (name, records) => request<User>(`${userPath(name)}/infinite`, records),
-  saveDailyResult: (name, date, result) => request<User>(`${userPath(name)}/daily`, { date, result }),
+  saveDailyResult: (name, date, result, streak) => request<User>(`${userPath(name)}/daily`, { date, result, streak }),
   grantPremium: (name, from, days) => request<User>(`${userPath(name)}/premium`, { from, days }),
   getScoreboard: (by) => request<ScoreboardEntry[]>(`/scoreboard?by=${by}`),
 }

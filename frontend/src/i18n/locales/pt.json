@@ -89,6 +89,9 @@
   "theme.toLight": "Mudar para o modo claro",
   "theme.toDark": "Mudar para o modo escuro",
 
+  "login.prompt.daily": "Entre para registrar sua vitória diária!",
+  "login.prompt.record": "Entre para registrar seu recorde!",
+  "login.notNow": "Agora não",
   "login.title": "Entrar",
   "login.name": "Seu nome",
   "login.pinky.title": "Promete de mindinho?",

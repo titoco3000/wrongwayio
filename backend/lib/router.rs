@@ -3,7 +3,8 @@
 //! - `POST /users` `{name}`: register. 409 `name-taken` if the name exists in any case.
 //! - `GET  /users/{name}`: the player's data.
 //! - `POST /users/{name}/infinite` `{score, ms, byGear}`: submit records; the best of each is kept.
-//! - `POST /users/{name}/daily` `{date, result}`: submit a daily challenge result; streaks follow.
+//! - `POST /users/{name}/daily` `{date, result, streak?}`: submit a daily challenge result; streaks follow.
+//!   `streak` is the win streak the player already has on their device, ending on `date`; a longer one is adopted.
 //! - `POST /users/{name}/premium` `{from, days}`: add premium days.
 //! - `GET  /scoreboard?by=score|time|streak|gear-1..gear-5|gear-R&limit=N`: top players.
 //!
@@ -112,6 +113,7 @@ async fn submit_infinite(
 struct SubmitDaily {
     date: String,
     result: DailyResult,
+    streak: Option<u32>,
 }
 
 async fn submit_daily(
@@ -122,7 +124,11 @@ async fn submit_daily(
     let today = Utc::now().date_naive();
     let user = store
         .update(&name_key(&name), |u| {
-            u.record_daily(&body.date, body.result, today)
+            u.record_daily(&body.date, body.result, today)?;
+            if let (DailyResult::Done, Some(streak)) = (body.result, body.streak) {
+                u.adopt_streak(&body.date, streak);
+            }
+            Ok(())
         })
         .await?;
     Ok(Json(user.into()))

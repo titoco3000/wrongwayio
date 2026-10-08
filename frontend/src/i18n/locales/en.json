@@ -89,6 +89,9 @@
   "theme.toLight": "Switch to light mode",
   "theme.toDark": "Switch to dark mode",
 
+  "login.prompt.daily": "Log in to register your daily victory!",
+  "login.prompt.record": "Log in to register your record!",
+  "login.notNow": "Not now",
   "login.title": "Log in",
   "login.name": "Your name",
   "login.pinky.title": "Pinky promise?",

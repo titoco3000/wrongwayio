@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, type User } from '../api'
-import { adoptGuestData } from '../daily/dailyChallenge'
+import { adoptGuestData, pendingDailySync } from '../daily/dailyChallenge'
 import { applyRun, clearGuestRecords, loadGuestRecords, normalizeRecords, saveGuestRecords } from '../infinite/infiniteDrive'
 import { isNative, SITE_URL } from '../native/platform'
 
@@ -85,15 +85,31 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     adoptGuestData(u.name)
     // the guest's records are kept where they beat the user's (the backend always has records, empty or not)
     const guest = loadGuestRecords()
+    let records: ReturnType<typeof applyRun>['records'] | null = null
     if (guest) {
-      const { records, broken } = applyRun(normalizeRecords(u.infiniteRecords), guest)
+      const applied = applyRun(normalizeRecords(u.infiniteRecords), guest)
       clearGuestRecords()
-      if (broken.length > 0) {
-        api
-          .saveInfiniteRecords(u.name, records)
-          .then(setUser)
-          .catch(() => saveGuestRecords(guest))
-      }
+      if (applied.broken.length > 0) records = applied.records
+    }
+    const daily = pendingDailySync(u.name)
+    if (records || daily.length > 0) {
+      // sync what this device holds with the account; a failure leaves the account as it was
+      void (async () => {
+        let latest = u
+        if (records) {
+          try {
+            latest = await api.saveInfiniteRecords(u.name, records)
+          } catch {
+            if (guest) saveGuestRecords(guest)
+          }
+        }
+        try {
+          for (const c of daily) latest = await api.saveDailyResult(u.name, c.date, c.result, c.streak)
+        } catch {
+          // the local streak stays on this device; the next login tries again
+        }
+        if (latest !== u) setUser((current) => (current?.name === latest.name ? latest : current))
+      })()
     }
     setUser(u)
   }, [])

@@ -95,6 +95,21 @@ export function saveDailyResult(owner: Owner, result: DailyResult): number {
   return streak
 }
 
+/** What a new login must tell the server, oldest first: the streak the device holds, and today's loss if any. */
+export function pendingDailySync(owner: Owner): { date: string; result: DailyResult; streak?: number }[] {
+  const calls: { date: string; result: DailyResult; streak?: number }[] = []
+  try {
+    const streak: Streak | null = JSON.parse(localStorage.getItem(streakKey(owner)) ?? 'null')
+    if (streak && streak.count > 0 && (streak.lastDate === todayKey() || streak.lastDate === yesterdayKey())) {
+      calls.push({ date: streak.lastDate, result: 'done', streak: streak.count })
+    }
+    if (loadDailyResult(owner) === 'failed') calls.push({ date: todayKey(), result: 'failed' })
+  } catch {
+    // storage unavailable: nothing to sync
+  }
+  return calls
+}
+
 const hasData = (owner: Owner) => {
   try {
     return localStorage.getItem(resultKey(owner)) !== null || localStorage.getItem(streakKey(owner)) !== null
