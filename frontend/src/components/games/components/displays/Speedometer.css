@@ -1,0 +1,35 @@
+.speedometer {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  opacity: 0.5;
+}
+
+.speedometer__face {
+  fill: #1a1a1a;
+  stroke: #333;
+  stroke-width: 4;
+}
+
+.speedometer__arc {
+  fill: none;
+  stroke: #555;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.speedometer__mark {
+  stroke: #8a8a8a;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.speedometer__needle {
+  stroke: #c0392b;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.speedometer__hub {
+  fill: #555;
+}

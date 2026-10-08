@@ -59,6 +59,10 @@ type Props = {
   steerRef: RefObject<number>
   /** Speed multiplier (negative = reverse), read every frame. */
   speedRef: RefObject<number>
+  /** Written every frame with the speed multiplier actually driven (eases towards `speedRef`). */
+  currentSpeedRef?: RefObject<number>
+  /** Show the whole board from above instead of the driver's perspective. */
+  topDown?: boolean
   /** The car left the main tile and was teleported back to the start. */
   onExit?: (side: ExitSide) => void
   /** The car reached the far edge of the main tile. Fires once per approach. */
@@ -108,12 +112,11 @@ function useUpscaled(src: string): Upscaled {
   return result
 }
 
-export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, onExit, onCrash }: Props) {
+export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, currentSpeedRef, topDown = false, onExit, onCrash }: Props) {
   // `steerRef` steers (-1..1). The gear (`speedRef`) sets the speed. The car stays inside the
   // main tile; leaving it sideways resets it to the start and rotates its
   // heading by 90deg, so it stays in the central tile while the world seems to
   // move.
-  const [topDown, setTopDown] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const roadTex = useUpscaled(crossroads)
   const backTex = useUpscaled(back)
@@ -139,7 +142,9 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, 
       last = now
       heading += steerRef.current * TURN_RATE * dt
       const rad = (heading * Math.PI) / 180
-      gearSpeed += (speedRef.current - gearSpeed) * (1 - Math.exp(-dt / SPEED_RESPONSE))
+      // Pushing against the wall, the car slows to a stop instead of keeping its gear's speed.
+      const targetSpeed = crashed ? 0 : speedRef.current
+      gearSpeed += (targetSpeed - gearSpeed) * (1 - Math.exp(-dt / SPEED_RESPONSE))
       const speed = FORWARD_SPEED * gearSpeed
       x += Math.sin(rad) * speed * dt
       y -= Math.cos(rad) * speed * dt
@@ -166,6 +171,7 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, 
         y = RESPAWN_Y
         onExitRef.current?.(right ? 'right' : 'left')
       }
+      if (currentSpeedRef) currentSpeedRef.current = gearSpeed
       const style = rootRef.current?.style
       style?.setProperty('--cam-x', `${((MAIN_COL + x) / ROAD_COLS) * 100}%`)
       style?.setProperty('--cam-y', `${((MAIN_ROW + y) / ROAD_ROWS) * 100}%`)
@@ -173,14 +179,10 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, 
       frame = requestAnimationFrame(tick)
     })
     return () => cancelAnimationFrame(frame)
-  }, [steerRef, speedRef])
+  }, [steerRef, speedRef, currentSpeedRef])
 
   return (
     <div className={`render-road${topDown ? ' render-road--top' : ''}`} ref={rootRef}>
-      <label className="render-road__toggle">
-        <input type="checkbox" checked={topDown} onChange={(e) => setTopDown(e.target.checked)} />
-        Top-down view
-      </label>
       <div className="render-road__surface">
         <div
           className="render-road__grid"

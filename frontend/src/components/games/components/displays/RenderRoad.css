@@ -88,12 +88,6 @@
   fill: red;
 }
 
-.render-road__toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .render-road__tile {
   min-width: 0;
   min-height: 0;
