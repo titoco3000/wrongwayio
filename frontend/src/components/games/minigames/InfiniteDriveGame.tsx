@@ -70,7 +70,7 @@ export default function InfiniteDriveGame({ onEnd }: GameProps) {
     const run: Run = { score: scoreRef.current, ms: Date.now() - (startedAt ?? Date.now()), byGear: { ...byGear.current } }
     const { records, broken } = applyRun(user ? recordsFromScores(user.drivingHighScores) : normalizeRecords(loadGuestRecords()), run)
     if (broken.length > 0) {
-      if (user) api.saveInfiniteRecords(user.name, records).then(update).catch(() => {})
+      if (user) api.saveInfiniteRecords(user.name, records).then(update).catch((e) => console.warn('records sync failed', e))
       else saveGuestRecords(records)
     }
     setEnded({ cause, run, broken })

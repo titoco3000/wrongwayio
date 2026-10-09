@@ -99,6 +99,14 @@ impl Store {
     }
 
     pub async fn get(&self, key: &str) -> Result<Option<User>, ApiError> {
+        self.get_item(key)
+            .await?
+            .map(|item| serde_dynamo::from_item(item).map_err(internal))
+            .transpose()
+    }
+
+    /// The item as stored, which can lack attributes the [`User`] fills in with defaults.
+    async fn get_item(&self, key: &str) -> Result<Option<Item>, ApiError> {
         let out = self
             .client
             .get_item()
@@ -108,9 +116,7 @@ impl Store {
             .send()
             .await
             .map_err(internal)?;
-        out.item
-            .map(|item| serde_dynamo::from_item(item).map_err(internal))
-            .transpose()
+        Ok(out.item)
     }
 
     /// Inserts a new player; `NameTaken` if the key already exists.
@@ -143,33 +149,30 @@ impl Store {
         change: impl Fn(&mut User) -> Result<(), ApiError>,
     ) -> Result<User, ApiError> {
         for _ in 0..WRITE_ATTEMPTS {
-            let old = self.get(key).await?.ok_or(ApiError::NotFound)?;
+            let stored = self.get_item(key).await?.ok_or(ApiError::NotFound)?;
+            let old: User = serde_dynamo::from_item(stored.clone()).map_err(internal)?;
             let mut user = old.clone();
             change(&mut user)?;
             let before: Item = serde_dynamo::to_item(&old).map_err(internal)?;
             let after: Item = serde_dynamo::to_item(&user).map_err(internal)?;
 
             let mut set = Vec::new();
-            let mut remove = Vec::new();
             let mut guards = vec!["attribute_exists(name_key)".to_string()];
             let mut update = self.client.update_item().table_name(&self.table);
-            let mut names: Vec<&String> = before.keys().chain(after.keys()).collect();
+            let mut names: Vec<&String> = after.keys().collect();
             names.sort();
-            names.dedup();
             for (i, name) in names.into_iter().enumerate() {
                 if name == "name_key" || before.get(name) == after.get(name) {
                     continue;
                 }
                 let (n, v) = (format!("#n{i}"), format!(":v{i}"));
                 update = update.expression_attribute_names(&n, name);
-                match after.get(name) {
-                    Some(value) => {
-                        update = update.expression_attribute_values(&v, value.clone());
-                        set.push(format!("{n} = {v}"));
-                    }
-                    None => remove.push(n.clone()),
+                if let Some(value) = after.get(name) {
+                    update = update.expression_attribute_values(&v, value.clone());
+                    set.push(format!("{n} = {v}"));
                 }
-                match before.get(name) {
+                // guard on what is really stored: an attribute an older item lacks is not a null one
+                match stored.get(name) {
                     Some(value) => {
                         let o = format!(":o{i}");
                         update = update.expression_attribute_values(&o, value.clone());
@@ -178,16 +181,10 @@ impl Store {
                     None => guards.push(format!("attribute_not_exists({n})")),
                 }
             }
-            if set.is_empty() && remove.is_empty() {
+            if set.is_empty() {
                 return Ok(user);
             }
-            let mut expression = String::new();
-            if !set.is_empty() {
-                expression += &format!("SET {}", set.join(", "));
-            }
-            if !remove.is_empty() {
-                expression += &format!(" REMOVE {}", remove.join(", "));
-            }
+            let expression = format!("SET {}", set.join(", "));
             let result = update
                 .key("name_key", AttributeValue::S(key.to_string()))
                 .update_expression(expression)

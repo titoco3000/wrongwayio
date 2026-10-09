@@ -99,14 +99,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (records) {
           try {
             latest = await api.saveInfiniteRecords(u.name, records)
-          } catch {
+          } catch (e) {
+            console.warn('records sync failed', e)
             if (guest) saveGuestRecords(guest)
           }
         }
         try {
           for (const c of daily) latest = await api.saveDailyResult(u.name, c.date, c.result, c.streak)
-        } catch {
+        } catch (e) {
           // the local streak stays on this device; the next login tries again
+          console.warn('daily sync failed', e)
         }
         if (latest !== u) setUser((current) => (current?.name === latest.name ? latest : current))
       })()

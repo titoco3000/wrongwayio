@@ -38,7 +38,7 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
 
 data "aws_iam_policy_document" "users_table" {
   statement {
-    actions   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Scan"]
+    actions   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Scan"]
     resources = [aws_dynamodb_table.users.arn]
   }
 }

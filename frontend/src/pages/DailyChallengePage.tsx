@@ -26,7 +26,7 @@ function Run({ record }: { record: boolean }) {
   const finish = (result: 'done' | 'failed') => {
     const newStreak = record ? saveDailyResult(user?.name ?? null, result) : 0
     // the account keeps its own copy for the scoreboard; a failed sync leaves the local result as is
-    if (record && user) api.saveDailyResult(user.name, todayKey(), result, result === 'done' ? newStreak : undefined).then(update).catch(() => {})
+    if (record && user) api.saveDailyResult(user.name, todayKey(), result, result === 'done' ? newStreak : undefined).then(update).catch((e) => console.warn('daily sync failed', e))
     if (record && result === 'done') setStreak(newStreak)
     else close()
   }
