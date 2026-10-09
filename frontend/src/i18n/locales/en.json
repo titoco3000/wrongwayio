@@ -40,6 +40,9 @@
   "audio.replay": "Play the word again",
   "swipe.question": "The swipe was to what direction?",
   "swipe.hint": "Swipe left or right",
+  "hand.hint": "Raise your left or right hand",
+  "hand.loading": "Starting the camera…",
+  "hand.allow": "Allow camera access for the full experience",
   "keyboard.backspace": "Backspace",
   "view.topDown": "Top-down view",
 
@@ -67,8 +70,10 @@
   "game.swipeTyping": "Swipe, typing",
   "game.wordArrow": "Word, arrow buttons",
   "game.wordSwipe": "Word, swipe",
+  "game.wordHand": "Word, raise hand",
   "game.audioArrow": "Audio, arrow buttons",
   "game.audioSwipe": "Audio, swipe",
+  "game.audioHand": "Audio, raise hand",
   "game.audioDrive": "Audio, drive",
   "game.drive": "Drive",
 

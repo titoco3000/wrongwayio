@@ -7,7 +7,9 @@ import SwipeTypingGame from './SwipeTypingGame'
 import DriveGame from './DriveGame'
 import WordArrowGame from './WordArrowGame'
 import WordSwipeGame from './WordSwipeGame'
+import WordHandGame from './WordHandGame'
 import AudioArrowGame from './AudioArrowGame'
+import AudioHandGame from './AudioHandGame'
 import AudioDriveGame from './AudioDriveGame'
 import AudioSwipeGame from './AudioSwipeGame'
 
@@ -19,8 +21,10 @@ export const games: { nameKey: string; Component: ComponentType<GameProps> }[] =
   { nameKey: 'game.swipeTyping', Component: SwipeTypingGame },
   { nameKey: 'game.wordArrow', Component: WordArrowGame },
   { nameKey: 'game.wordSwipe', Component: WordSwipeGame },
+  { nameKey: 'game.wordHand', Component: WordHandGame },
   { nameKey: 'game.drive', Component: DriveGame },
   { nameKey: 'game.audioArrow', Component: AudioArrowGame },
   { nameKey: 'game.audioSwipe', Component: AudioSwipeGame },
   { nameKey: 'game.audioDrive', Component: AudioDriveGame },
+  { nameKey: 'game.audioHand', Component: AudioHandGame },
 ]

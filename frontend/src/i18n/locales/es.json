@@ -40,6 +40,9 @@
   "audio.replay": "Reproducir la palabra otra vez",
   "swipe.question": "¿Hacia qué dirección fue el deslizamiento?",
   "swipe.hint": "Desliza a la izquierda o a la derecha",
+  "hand.hint": "Levanta la mano izquierda o derecha",
+  "hand.loading": "Iniciando la cámara…",
+  "hand.allow": "Permite la cámara para la experiencia completa",
   "keyboard.backspace": "Borrar",
   "view.topDown": "Vista desde arriba",
 
@@ -67,8 +70,10 @@
   "game.swipeTyping": "Deslizar, escribiendo",
   "game.wordArrow": "Palabra, botones de flecha",
   "game.wordSwipe": "Palabra, deslizar",
+  "game.wordHand": "Palabra, levantar la mano",
   "game.audioArrow": "Audio, botones de flecha",
   "game.audioSwipe": "Audio, deslizar",
+  "game.audioHand": "Audio, levantar la mano",
   "game.audioDrive": "Audio, conducir",
   "game.drive": "Conducir",
 

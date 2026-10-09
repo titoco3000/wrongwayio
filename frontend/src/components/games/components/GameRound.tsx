@@ -16,6 +16,8 @@ export type InputComponent = ComponentType<{
   onSubmit: (direction: Direction, origin: Point) => void
   /** true once time ran out: the input must stop reacting */
   disabled?: boolean
+  /** call with true to stop the clock while the input can't take an answer yet (e.g. waiting for camera access), false to resume */
+  onPause?: (paused: boolean) => void
 }> & {
   /** Seconds the user has to answer, or a function giving them (for limits that depend on the language). Default 5. */
   timeoutSeconds?: number | (() => number)
@@ -67,6 +69,7 @@ function RoundPage({ Display, Input, timeoutSeconds, direction, index, completed
   const [bursts, setBursts] = useState<Burst[]>([])
 
   const [timedUp, setTimedUp] = useState(false)
+  const [paused, setPaused] = useState(false)
   const submit = (value: Direction, origin: Point) => {
     if (timedUp) return
     if (answer(value)) setBursts((b) => [...b, { ...origin, id: nextBurst++ }])
@@ -83,7 +86,7 @@ function RoundPage({ Display, Input, timeoutSeconds, direction, index, completed
             <TimeoutClock
               key={index}
               seconds={timeoutSeconds ?? (typeof Input.timeoutSeconds === 'function' ? Input.timeoutSeconds() : (Input.timeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS))}
-              running={directionSet && completed === index}
+              running={directionSet && completed === index && !paused}
               onTimeUp={() => setTimedUp(true)}
               onContinue={endLost}
             />
@@ -96,7 +99,7 @@ function RoundPage({ Display, Input, timeoutSeconds, direction, index, completed
           </div>
         }
         // fixed height so the arrow doesn't shift when the input appears
-        footer={<div className={`${Input.footerHeight ?? 'h-40'} overflow-hidden`}>{directionSet && <Input key={index} onSubmit={submit} disabled={timedUp} />}</div>}
+        footer={<div className={`${Input.footerHeight ?? 'h-40'} overflow-hidden`}>{directionSet && <Input key={index} onSubmit={submit} disabled={timedUp} onPause={setPaused} />}</div>}
       />
       {bursts.map((b) => (
         <StarBurst key={b.id} x={b.x} y={b.y} onDone={() => setBursts((all) => all.filter((x) => x.id !== b.id))} />
