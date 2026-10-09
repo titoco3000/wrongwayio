@@ -4,24 +4,28 @@
  */
 
 import { t } from '../i18n'
-import { normalizeRecords, type DriveGear, type Records as InfiniteRecords } from '../infinite/infiniteDrive'
+import { DRIVE_GEARS, recordsFromScores, scoresFromRecords, type DriveGear, type Records as InfiniteRecords } from '../infinite/infiniteDrive'
 
 export type User = {
   name: string
-  /** epoch ms when the premium pass runs out; null if the user never had one */
-  premiumUntil: number | null
   /** who gifted the current premium pass */
   premiumFrom: string | null
-  /** best results of infinite driving; missing until the first run (and on accounts made before it existed) */
-  infiniteRecords?: InfiniteRecords | null
-  /** the last daily challenge played; its date is the player's local day, YYYY-MM-DD */
-  daily?: { date: string; result: 'done' | 'failed' } | null
+  /** epoch ms when the premium pass runs out; null if the user never had one */
+  premiumUntil: number | null
+  /** epoch ms */
+  createdAt: number
+  /** first day (the player's local day, YYYY-MM-DD) of the running streak of won daily challenges; null if none */
+  currentStreakStart: string | null
+  /** the player's local day of the last daily challenge played, won or lost */
+  lastStreakCheckin: string | null
   /** longest run of days with a won daily challenge */
-  longestStreak?: number
+  largestStreak: number
+  /** best score of infinite driving in each gear: 1, 2, 3, 4, 5, R */
+  drivingHighScores: number[]
 }
 
 /** One row of the scoreboard. */
-export type ScoreboardEntry = { name: string; score: number; ms: number; longestStreak: number; byGear: InfiniteRecords['byGear'] }
+export type ScoreboardEntry = Pick<User, 'name' | 'largestStreak' | 'drivingHighScores'>
 /** `score` is infinite driving overall, `gear-X` its points in one gear */
 export type ScoreboardKind = 'score' | 'streak' | `gear-${DriveGear}`
 
@@ -70,7 +74,7 @@ const writeTable = (table: Table) => {
 
 /** What a board ranks an entry by. */
 export const scoreboardValue = (e: ScoreboardEntry, by: ScoreboardKind) =>
-  by === 'score' ? e.score : by === 'streak' ? e.longestStreak : e.byGear[by.slice(5) as DriveGear]
+  by === 'streak' ? e.largestStreak : by === 'score' ? Math.max(0, ...e.drivingHighScores) : (e.drivingHighScores[DRIVE_GEARS.indexOf(by.slice(5) as DriveGear)] ?? 0)
 
 const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') || null
 
@@ -123,7 +127,16 @@ const stubApi = {
     if (!isValidName(name)) throw new ApiError('invalid-name')
     const table = readTable()
     if (table[keyOf(name)]) throw new ApiError('name-taken')
-    const user: User = { name: cleanName(name), premiumUntil: null, premiumFrom: null }
+    const user: User = {
+      name: cleanName(name),
+      premiumFrom: null,
+      premiumUntil: null,
+      createdAt: Date.now(),
+      currentStreakStart: null,
+      lastStreakCheckin: null,
+      largestStreak: 0,
+      drivingHighScores: [0, 0, 0, 0, 0, 0],
+    }
     writeTable({ ...table, [keyOf(name)]: user })
     return user
   },
@@ -134,7 +147,7 @@ const stubApi = {
     const table = readTable()
     const user = table[keyOf(name)]
     if (!user) throw new ApiError('not-found')
-    const updated: User = { ...user, infiniteRecords: records }
+    const updated: User = { ...user, drivingHighScores: scoresFromRecords(records) }
     writeTable({ ...table, [keyOf(name)]: updated })
     return updated
   },
@@ -166,10 +179,8 @@ const stubApi = {
     return Object.values(readTable())
       .map((u) => ({
         name: u.name,
-        score: u.infiniteRecords?.score ?? 0,
-        ms: u.infiniteRecords?.ms ?? 0,
-        longestStreak: u.longestStreak ?? 0,
-        byGear: normalizeRecords(u.infiniteRecords).byGear,
+        largestStreak: u.largestStreak ?? 0,
+        drivingHighScores: u.drivingHighScores ?? [],
       }))
       .filter((e) => value(e) > 0)
       .sort((a, b) => value(b) - value(a) || a.name.localeCompare(b.name))
@@ -186,7 +197,7 @@ const realApi: typeof stubApi = {
     }
   },
   createUser: (name) => request<User>('/users', { name: cleanName(name) }),
-  saveInfiniteRecords: (name, records) => request<User>(`${userPath(name)}/infinite`, records),
+  saveInfiniteRecords: (name, records) => request<User>(`${userPath(name)}/infinite`, { drivingHighScores: scoresFromRecords(records) }),
   saveDailyResult: (name, date, result, streak) => request<User>(`${userPath(name)}/daily`, { date, result, streak }),
   grantPremium: (name, from, days) => request<User>(`${userPath(name)}/premium`, { from, days }),
   getScoreboard: (by) => request<ScoreboardEntry[]>(`/scoreboard?by=${by}`),

@@ -24,50 +24,8 @@ pub fn name_key(name: &str) -> String {
     clean_name(name).to_lowercase()
 }
 
-/// Correct answers given in each gear. Serialized as `{"1": n, ... "5": n, "R": n}`.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-#[serde(default)]
-pub struct ByGear {
-    #[serde(rename = "1")]
-    pub g1: u32,
-    #[serde(rename = "2")]
-    pub g2: u32,
-    #[serde(rename = "3")]
-    pub g3: u32,
-    #[serde(rename = "4")]
-    pub g4: u32,
-    #[serde(rename = "5")]
-    pub g5: u32,
-    /// reverse ("rear")
-    #[serde(rename = "R")]
-    pub r: u32,
-}
-
-/// Best values ever reached in infinite driving; each is its own record.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-#[serde(default, rename_all = "camelCase")]
-pub struct Records {
-    pub score: u32,
-    /// longest run, ms
-    pub ms: u64,
-    pub by_gear: ByGear,
-}
-
-impl Records {
-    /// Keeps the best of each record. Returns whether anything changed.
-    pub fn merge(&mut self, other: &Records) -> bool {
-        let before = self.clone();
-        self.score = self.score.max(other.score);
-        self.ms = self.ms.max(other.ms);
-        self.by_gear.g1 = self.by_gear.g1.max(other.by_gear.g1);
-        self.by_gear.g2 = self.by_gear.g2.max(other.by_gear.g2);
-        self.by_gear.g3 = self.by_gear.g3.max(other.by_gear.g3);
-        self.by_gear.g4 = self.by_gear.g4.max(other.by_gear.g4);
-        self.by_gear.g5 = self.by_gear.g5.max(other.by_gear.g5);
-        self.by_gear.r = self.by_gear.r.max(other.by_gear.r);
-        *self != before
-    }
-}
+/// Gears in the order `User::driving_high_scores` keeps them.
+pub const GEARS: [char; 6] = ['1', '2', '3', '4', '5', 'R'];
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -76,22 +34,7 @@ pub enum DailyResult {
     Failed,
 }
 
-/// The last daily challenge played. `date` is the player's local day, YYYY-MM-DD.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Daily {
-    pub date: String,
-    pub result: DailyResult,
-}
-
-/// Consecutive days with a won challenge, ending at `last_date`.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-#[serde(default, rename_all = "camelCase")]
-pub struct Streak {
-    pub count: u32,
-    pub last_date: String,
-}
-
-/// A player, as stored.
+/// A player, as stored: one DynamoDB item.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct User {
@@ -99,17 +42,18 @@ pub struct User {
     #[serde(rename = "name_key")]
     pub name_key: String,
     pub name: String,
-    /// Bumped on every write; a write only lands if the stored one still matches.
-    pub version: u64,
-    /// epoch ms
-    pub created_at: i64,
+    pub premium_from: Option<String>,
     /// epoch ms when the premium pass runs out
     pub premium_until: Option<i64>,
-    pub premium_from: Option<String>,
-    pub infinite: Records,
-    pub daily: Option<Daily>,
-    pub streak: Streak,
-    pub longest_streak: u32,
+    /// epoch ms
+    pub created_at: i64,
+    /// First day (YYYY-MM-DD) of the running streak; `None` when there is none.
+    pub current_streak_start: Option<String>,
+    /// The player's local day (YYYY-MM-DD) of the last daily challenge played, won or lost.
+    pub last_streak_checkin: Option<String>,
+    pub largest_streak: u32,
+    /// Best score in each gear, in the order of [`GEARS`]: 1, 2, 3, 4, 5, R.
+    pub driving_high_scores: [u32; 6],
 }
 
 const DAY_MS: i64 = 24 * 60 * 60 * 1000;
@@ -119,6 +63,10 @@ const MAX_STREAK: u32 = 10_000;
 fn parse_date(date: &str) -> Result<NaiveDate, ApiError> {
     NaiveDate::parse_from_str(date, "%Y-%m-%d")
         .map_err(|_| ApiError::Invalid("date must be YYYY-MM-DD"))
+}
+
+fn format_date(day: NaiveDate) -> String {
+    day.format("%Y-%m-%d").to_string()
 }
 
 impl User {
@@ -134,11 +82,37 @@ impl User {
         })
     }
 
+    /// Best score over all gears.
+    pub fn best_score(&self) -> u32 {
+        self.driving_high_scores.iter().copied().max().unwrap_or(0)
+    }
+
+    /// Days won in the running streak, 0 after a loss.
+    pub fn streak_count(&self) -> u32 {
+        let start = self.current_streak_start.as_deref().map(parse_date);
+        let last = self.last_streak_checkin.as_deref().map(parse_date);
+        match (start, last) {
+            (Some(Ok(start)), Some(Ok(last))) if last >= start => {
+                u32::try_from((last - start).num_days() + 1).unwrap_or(MAX_STREAK)
+            }
+            _ => 0,
+        }
+    }
+
+    /// Keeps the best of each gear. Returns whether anything changed.
+    pub fn merge_scores(&mut self, other: &[u32; 6]) -> bool {
+        let before = self.driving_high_scores;
+        for (mine, theirs) in self.driving_high_scores.iter_mut().zip(*other) {
+            *mine = (*mine).max(theirs);
+        }
+        self.driving_high_scores != before
+    }
+
     /// Records the result of the daily challenge played on `date`.
     ///
     /// The first result of a day counts; later ones for the same (or an
     /// earlier) day are ignored, so replays and retried requests change
-    /// nothing. A win on the day after the streak's last win extends it, a
+    /// nothing. A win on the day after the last check-in extends the streak, a
     /// win after a gap starts a new one, a loss ends it.
     ///
     /// `today` is the server's UTC day. Players' local days differ from it by
@@ -153,35 +127,47 @@ impl User {
         if (day - today).num_days().abs() > 1 {
             return Err(ApiError::Invalid("date is too far from today"));
         }
-        if let Some(last) = &self.daily {
-            if parse_date(&last.date).is_ok_and(|last| last >= day) {
+        let last = self.last_streak_checkin.as_deref().map(parse_date);
+        if let Some(Ok(last)) = last {
+            if last >= day {
                 return Ok(());
             }
         }
         match result {
             DailyResult::Done => {
-                let continues = parse_date(&self.streak.last_date)
-                    .is_ok_and(|last| last + Duration::days(1) == day);
-                self.streak.count = if continues { self.streak.count + 1 } else { 1 };
-                self.streak.last_date = date.to_string();
-                self.longest_streak = self.longest_streak.max(self.streak.count);
+                let continues = self.current_streak_start.is_some()
+                    && matches!(last, Some(Ok(last)) if last + Duration::days(1) == day);
+                if !continues {
+                    self.current_streak_start = Some(date.to_string());
+                }
+                self.largest_streak = self.largest_streak.max(
+                    u32::try_from(
+                        (day - parse_date(self.current_streak_start.as_deref().unwrap_or(date))?)
+                            .num_days()
+                            + 1,
+                    )
+                    .unwrap_or(MAX_STREAK),
+                );
             }
-            DailyResult::Failed => self.streak.count = 0,
+            DailyResult::Failed => self.current_streak_start = None,
         }
-        self.daily = Some(Daily {
-            date: date.to_string(),
-            result,
-        });
+        self.last_streak_checkin = Some(date.to_string());
         Ok(())
     }
 
     /// A streak of `count` wins ending on `date`, brought from the player's device (e.g. earned as a guest).
-    /// Only applies when it ends on the streak's last win and beats the one kept here.
+    /// Only applies when it ends on the last check-in and beats the one kept here.
     pub fn adopt_streak(&mut self, date: &str, count: u32) {
-        if self.streak.last_date == date && count > self.streak.count {
-            self.streak.count = count.min(MAX_STREAK);
-            self.longest_streak = self.longest_streak.max(self.streak.count);
+        if self.last_streak_checkin.as_deref() != Some(date)
+            || self.current_streak_start.is_none()
+            || count <= self.streak_count()
+        {
+            return;
         }
+        let Ok(day) = parse_date(date) else { return };
+        let count = count.min(MAX_STREAK);
+        self.current_streak_start = Some(format_date(day - Duration::days(i64::from(count) - 1)));
+        self.largest_streak = self.largest_streak.max(count);
     }
 
     /// Adds `days` of premium on top of whatever is left.
@@ -213,7 +199,8 @@ mod tests {
         let item: std::collections::HashMap<String, aws_sdk_dynamodb::types::AttributeValue> =
             serde_dynamo::to_item(user()).unwrap();
         assert!(item.contains_key("name_key"));
-        assert!(item.contains_key("longestStreak"));
+        assert!(item.contains_key("largestStreak"));
+        assert!(!item.contains_key("version"));
     }
 
     #[test]
@@ -229,42 +216,14 @@ mod tests {
     }
 
     #[test]
-    fn records_keep_the_best_of_each() {
-        let mut a = Records {
-            score: 10,
-            ms: 5000,
-            by_gear: ByGear {
-                g1: 4,
-                ..Default::default()
-            },
-        };
-        let b = Records {
-            score: 7,
-            ms: 9000,
-            by_gear: ByGear {
-                g1: 1,
-                g3: 6,
-                ..Default::default()
-            },
-        };
-        assert!(a.merge(&b));
-        assert_eq!(
-            (a.score, a.ms, a.by_gear.g1, a.by_gear.g3),
-            (10, 9000, 4, 6)
-        );
-        assert!(!a.merge(&b));
-    }
-
-    #[test]
-    fn by_gear_uses_the_frontends_keys() {
-        let json = serde_json::to_value(ByGear {
-            g2: 3,
-            ..Default::default()
-        })
-        .unwrap();
-        assert_eq!(json["2"], 3);
-        let parsed: Records = serde_json::from_str(r#"{"score":2,"byGear":{"5":9}}"#).unwrap();
-        assert_eq!((parsed.score, parsed.ms, parsed.by_gear.g5), (2, 0, 9));
+    fn scores_keep_the_best_of_each_gear() {
+        let mut u = user();
+        u.driving_high_scores = [4, 0, 0, 0, 0, 0];
+        let b = [1, 0, 6, 0, 0, 0];
+        assert!(u.merge_scores(&b));
+        assert_eq!(u.driving_high_scores, [4, 0, 6, 0, 0, 0]);
+        assert_eq!(u.best_score(), 6);
+        assert!(!u.merge_scores(&b));
     }
 
     #[test]
@@ -275,7 +234,7 @@ mod tests {
             .unwrap();
         u.record_daily("2026-03-10", DailyResult::Done, today)
             .unwrap();
-        assert_eq!((u.streak.count, u.longest_streak), (2, 2));
+        assert_eq!((u.streak_count(), u.largest_streak), (2, 2));
     }
 
     #[test]
@@ -287,7 +246,7 @@ mod tests {
             .unwrap();
         u.record_daily("2026-03-09", DailyResult::Done, day("2026-03-09"))
             .unwrap();
-        assert_eq!((u.streak.count, u.longest_streak), (1, 2));
+        assert_eq!((u.streak_count(), u.largest_streak), (1, 2));
     }
 
     #[test]
@@ -297,8 +256,8 @@ mod tests {
             .unwrap();
         u.record_daily("2026-03-06", DailyResult::Failed, day("2026-03-06"))
             .unwrap();
-        assert_eq!((u.streak.count, u.longest_streak), (0, 1));
-        assert_eq!(u.daily.as_ref().unwrap().result, DailyResult::Failed);
+        assert_eq!((u.streak_count(), u.largest_streak), (0, 1));
+        assert_eq!(u.last_streak_checkin.as_deref(), Some("2026-03-06"));
     }
 
     #[test]
@@ -309,14 +268,11 @@ mod tests {
             .unwrap();
         u.record_daily("2026-03-05", DailyResult::Done, today)
             .unwrap();
-        assert_eq!(
-            (u.streak.count, u.daily.as_ref().unwrap().result),
-            (0, DailyResult::Failed)
-        );
+        assert_eq!(u.streak_count(), 0);
         // an older day can't overwrite a newer one either
         u.record_daily("2026-03-04", DailyResult::Done, today)
             .unwrap();
-        assert_eq!(u.daily.as_ref().unwrap().date, "2026-03-05");
+        assert_eq!(u.last_streak_checkin.as_deref(), Some("2026-03-05"));
     }
 
     #[test]
@@ -342,11 +298,11 @@ mod tests {
         u.record_daily("2026-03-09", DailyResult::Done, today)
             .unwrap();
         u.adopt_streak("2026-03-08", 9);
-        assert_eq!(u.streak.count, 1);
+        assert_eq!(u.streak_count(), 1);
         u.adopt_streak("2026-03-09", 9);
-        assert_eq!((u.streak.count, u.longest_streak), (9, 9));
+        assert_eq!((u.streak_count(), u.largest_streak), (9, 9));
         u.adopt_streak("2026-03-09", 3);
-        assert_eq!(u.streak.count, 9);
+        assert_eq!(u.streak_count(), 9);
     }
 
     #[test]

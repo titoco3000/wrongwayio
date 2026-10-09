@@ -1,30 +1,10 @@
+import { daysBetween, emptyLocalData, loadLocalData, saveLocalData, streakLength, type Owner } from '../localData'
+
 export const DAILY_GAME_COUNT = 5
 
 export type DailyResult = 'done' | 'failed'
 
-/** Whose data this is: a user's name, or null for a guest. */
-export type Owner = string | null
-
-const RESULT_PREFIX = 'dailyChallenge'
-const STREAK_PREFIX = 'dailyStreak'
-
-// users and the guest never share a key, whatever the user is called
-export const ownerId = (owner: Owner) => (owner === null ? 'guest' : `user:${owner.trim().toLowerCase()}`)
-const resultKey = (owner: Owner) => `${RESULT_PREFIX}:${ownerId(owner)}`
-const streakKey = (owner: Owner) => `${STREAK_PREFIX}:${ownerId(owner)}`
-
-// before data was keyed by owner it lived under bare keys: that was the guest's
-try {
-  for (const prefix of [RESULT_PREFIX, STREAK_PREFIX]) {
-    const old = localStorage.getItem(prefix)
-    if (old === null) continue
-    const guestKey = `${prefix}:guest`
-    if (localStorage.getItem(guestKey) === null) localStorage.setItem(guestKey, old)
-    localStorage.removeItem(prefix)
-  }
-} catch {
-  // storage unavailable: nothing to migrate
-}
+export type { Owner }
 
 /** Local calendar date as YYYY-MM-DD. */
 export const todayKey = (now = new Date()) =>
@@ -61,73 +41,55 @@ export function dailyGameIndices(gameCount: number, date = todayKey()): number[]
   return all.slice(0, DAILY_GAME_COUNT)
 }
 
-/** Today's saved result, or null if not played yet (or the saved one is from another day). */
+/** Today's saved result, or null if not played yet. A loss is a check-in today with no running streak. */
 export function loadDailyResult(owner: Owner): DailyResult | null {
-  try {
-    const saved = JSON.parse(localStorage.getItem(resultKey(owner)) ?? 'null')
-    return saved?.date === todayKey() && (saved.result === 'done' || saved.result === 'failed') ? saved.result : null
-  } catch {
-    return null
-  }
+  const data = loadLocalData(owner)
+  if (data.lastStreakCheckin !== todayKey()) return null
+  return data.currentStreakStart === null ? 'failed' : 'done'
 }
-
-type Streak = { count: number; lastDate: string }
 
 /** Consecutive days with a won challenge, ending today or yesterday; 0 once a day was missed or lost. */
 export function loadStreak(owner: Owner): number {
-  try {
-    const saved: Streak | null = JSON.parse(localStorage.getItem(streakKey(owner)) ?? 'null')
-    return saved && (saved.lastDate === todayKey() || saved.lastDate === yesterdayKey()) ? saved.count : 0
-  } catch {
-    return 0
-  }
+  const data = loadLocalData(owner)
+  return data.lastStreakCheckin === todayKey() || data.lastStreakCheckin === yesterdayKey() ? streakLength(data) : 0
 }
 
-/** Saves today's result. Returns the streak after a win, so it can be shown right away. */
+/** Saves today's result, like the server does: the first result of a day counts. Returns the streak after a win. */
 export function saveDailyResult(owner: Owner, result: DailyResult): number {
-  const streak = result === 'done' ? loadStreak(owner) + 1 : 0
-  try {
-    localStorage.setItem(resultKey(owner), JSON.stringify({ date: todayKey(), result }))
-    if (result === 'done') localStorage.setItem(streakKey(owner), JSON.stringify({ count: streak, lastDate: todayKey() } satisfies Streak))
-  } catch {
-    // storage unavailable: the result just isn't remembered
+  const data = loadLocalData(owner)
+  const today = todayKey()
+  if (data.lastStreakCheckin !== null && data.lastStreakCheckin >= today) return loadStreak(owner)
+  if (result === 'done') {
+    const continues = data.currentStreakStart !== null && data.lastStreakCheckin === yesterdayKey()
+    if (!continues) data.currentStreakStart = today
+    data.largestStreak = Math.max(data.largestStreak, daysBetween(data.currentStreakStart!, today) + 1)
+  } else {
+    data.currentStreakStart = null
   }
-  return streak
+  data.lastStreakCheckin = today
+  saveLocalData(owner, data)
+  return loadStreak(owner)
 }
+
+type Sync = { date: string; result: DailyResult; streak?: number }
 
 /** What a new login must tell the server, oldest first: the streak the device holds, and today's loss if any. */
-export function pendingDailySync(owner: Owner): { date: string; result: DailyResult; streak?: number }[] {
-  const calls: { date: string; result: DailyResult; streak?: number }[] = []
-  try {
-    const streak: Streak | null = JSON.parse(localStorage.getItem(streakKey(owner)) ?? 'null')
-    if (streak && streak.count > 0 && (streak.lastDate === todayKey() || streak.lastDate === yesterdayKey())) {
-      calls.push({ date: streak.lastDate, result: 'done', streak: streak.count })
-    }
-    if (loadDailyResult(owner) === 'failed') calls.push({ date: todayKey(), result: 'failed' })
-  } catch {
-    // storage unavailable: nothing to sync
-  }
+export function pendingDailySync(owner: Owner): Sync[] {
+  const calls: Sync[] = []
+  const streak = loadStreak(owner)
+  const last = loadLocalData(owner).lastStreakCheckin
+  if (streak > 0 && last) calls.push({ date: last, result: 'done', streak })
+  if (loadDailyResult(owner) === 'failed') calls.push({ date: todayKey(), result: 'failed' })
   return calls
 }
 
-const hasData = (owner: Owner) => {
-  try {
-    return localStorage.getItem(resultKey(owner)) !== null || localStorage.getItem(streakKey(owner)) !== null
-  } catch {
-    return false
-  }
-}
+const hasDailyData = (owner: Owner) => loadLocalData(owner).lastStreakCheckin !== null
 
-/** On login: a user with no data of their own takes over the guest's, which is then cleared. */
+/** On login: a user with no streak data of their own takes over the guest's, which is then cleared (the guest's scores stay). */
 export function adoptGuestData(userName: string) {
-  if (hasData(userName) || !hasData(null)) return
-  try {
-    for (const key of [resultKey, streakKey]) {
-      const guest = localStorage.getItem(key(null))
-      if (guest !== null) localStorage.setItem(key(userName), guest)
-      localStorage.removeItem(key(null))
-    }
-  } catch {
-    // storage unavailable: nothing to move
-  }
+  if (hasDailyData(userName) || !hasDailyData(null)) return
+  const guest = loadLocalData(null)
+  saveLocalData(userName, { ...loadLocalData(userName), currentStreakStart: guest.currentStreakStart, lastStreakCheckin: guest.lastStreakCheckin, largestStreak: guest.largestStreak })
+  const { currentStreakStart, lastStreakCheckin, largestStreak } = emptyLocalData()
+  saveLocalData(null, { ...guest, currentStreakStart, lastStreakCheckin, largestStreak })
 }

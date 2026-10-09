@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { api } from '../src/api'
-import { applyRun, clearGuestRecords, driveGear, emptyByGear, formatClock, loadGuestRecords, normalizeRecords, saveGuestRecords } from '../src/infinite/infiniteDrive'
+import { applyRun, clearGuestRecords, driveGear, emptyByGear, formatClock, loadGuestRecords, normalizeRecords, recordsFromScores, saveGuestRecords } from '../src/infinite/infiniteDrive'
 
 beforeEach(() => localStorage.clear())
 
@@ -13,15 +13,14 @@ describe('infinite driving records', () => {
       { kind: 'gear', gear: '1' },
       { kind: 'gear', gear: '5' },
       { kind: 'score' },
-      { kind: 'time' },
     ])
   })
 
   it('keeps every record separately and only reports the ones beaten', () => {
     const first = applyRun(none, run(5, 20000, { '1': 2, '5': 3 })).records
     const second = applyRun(first, run(4, 30000, { '1': 3, '5': 1 }))
-    expect(second.broken).toEqual([{ kind: 'gear', gear: '1' }, { kind: 'time' }])
-    expect(second.records).toEqual(run(5, 30000, { '1': 3, '5': 3 }))
+    expect(second.broken).toEqual([{ kind: 'gear', gear: '1' }])
+    expect(second.records).toEqual({ score: 5, byGear: { ...emptyByGear(), '1': 3, '5': 3 } })
   })
 
   it('a run with no points beats nothing', () => {
@@ -30,10 +29,11 @@ describe('infinite driving records', () => {
 
   it('a logged in user keeps the records on their account', async () => {
     const user = await api.createUser('Ana')
-    expect(user.infiniteRecords ?? null).toBeNull()
-    const { records } = applyRun(normalizeRecords(user.infiniteRecords), run(3, 5000, { '2': 3 }))
+    expect(user.drivingHighScores).toEqual([0, 0, 0, 0, 0, 0])
+    const { records } = applyRun(recordsFromScores(user.drivingHighScores), run(3, 5000, { '2': 3 }))
     await api.saveInfiniteRecords('Ana', records)
-    expect((await api.getUser('ana'))?.infiniteRecords).toEqual(records)
+    expect(recordsFromScores((await api.getUser('ana'))?.drivingHighScores)).toEqual(records)
+    expect((await api.getUser('ana'))?.drivingHighScores).toEqual([0, 3, 0, 0, 0, 0])
   })
 
   it('the guest keeps theirs in local storage', () => {

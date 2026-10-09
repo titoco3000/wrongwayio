@@ -15,6 +15,8 @@ use crate::error::ApiError;
 /// retry this many times before giving up.
 const WRITE_ATTEMPTS: usize = 4;
 
+type Item = std::collections::HashMap<String, AttributeValue>;
+
 #[derive(Clone)]
 pub struct Store {
     client: Client,
@@ -130,26 +132,66 @@ impl Store {
         }
     }
 
-    /// Reads the player, applies `change`, and writes it back only if nobody
-    /// else wrote in between (compare on `version`), retrying from the read
-    /// when someone did. `change` may therefore run more than once.
+    /// Reads the player, applies `change`, and writes back only the attributes
+    /// it changed, each guarded by the value that was read. Two writers
+    /// touching different attributes both land; if one touched the same
+    /// attribute meanwhile, this retries from the read. `change` may
+    /// therefore run more than once.
     pub async fn update(
         &self,
         key: &str,
         change: impl Fn(&mut User) -> Result<(), ApiError>,
     ) -> Result<User, ApiError> {
         for _ in 0..WRITE_ATTEMPTS {
-            let mut user = self.get(key).await?.ok_or(ApiError::NotFound)?;
-            let seen = user.version;
+            let old = self.get(key).await?.ok_or(ApiError::NotFound)?;
+            let mut user = old.clone();
             change(&mut user)?;
-            user.version = seen + 1;
-            let result = self
-                .client
-                .put_item()
-                .table_name(&self.table)
-                .set_item(Some(serde_dynamo::to_item(&user).map_err(internal)?))
-                .condition_expression("version = :seen")
-                .expression_attribute_values(":seen", AttributeValue::N(seen.to_string()))
+            let before: Item = serde_dynamo::to_item(&old).map_err(internal)?;
+            let after: Item = serde_dynamo::to_item(&user).map_err(internal)?;
+
+            let mut set = Vec::new();
+            let mut remove = Vec::new();
+            let mut guards = vec!["attribute_exists(name_key)".to_string()];
+            let mut update = self.client.update_item().table_name(&self.table);
+            let mut names: Vec<&String> = before.keys().chain(after.keys()).collect();
+            names.sort();
+            names.dedup();
+            for (i, name) in names.into_iter().enumerate() {
+                if name == "name_key" || before.get(name) == after.get(name) {
+                    continue;
+                }
+                let (n, v) = (format!("#n{i}"), format!(":v{i}"));
+                update = update.expression_attribute_names(&n, name);
+                match after.get(name) {
+                    Some(value) => {
+                        update = update.expression_attribute_values(&v, value.clone());
+                        set.push(format!("{n} = {v}"));
+                    }
+                    None => remove.push(n.clone()),
+                }
+                match before.get(name) {
+                    Some(value) => {
+                        let o = format!(":o{i}");
+                        update = update.expression_attribute_values(&o, value.clone());
+                        guards.push(format!("{n} = {o}"));
+                    }
+                    None => guards.push(format!("attribute_not_exists({n})")),
+                }
+            }
+            if set.is_empty() && remove.is_empty() {
+                return Ok(user);
+            }
+            let mut expression = String::new();
+            if !set.is_empty() {
+                expression += &format!("SET {}", set.join(", "));
+            }
+            if !remove.is_empty() {
+                expression += &format!(" REMOVE {}", remove.join(", "));
+            }
+            let result = update
+                .key("name_key", AttributeValue::S(key.to_string()))
+                .update_expression(expression)
+                .condition_expression(guards.join(" AND "))
                 .send()
                 .await;
             match result {

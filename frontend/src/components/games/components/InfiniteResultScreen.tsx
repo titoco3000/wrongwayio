@@ -19,9 +19,7 @@ export default function InfiniteResultScreen({ cause, run, broken, onContinue }:
   const message = (record: BrokenRecord) =>
     record.kind === 'gear'
       ? t('infinite.record.gear', { gear: t(`gear.${record.gear}`) })
-      : record.kind === 'score'
-        ? t('infinite.record.score')
-        : t('infinite.record.time')
+      : t('infinite.record.score')
   return (
     <Container
       body={

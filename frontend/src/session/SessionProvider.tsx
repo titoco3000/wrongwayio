@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, type User } from '../api'
 import { adoptGuestData, pendingDailySync } from '../daily/dailyChallenge'
-import { applyRun, clearGuestRecords, loadGuestRecords, normalizeRecords, saveGuestRecords } from '../infinite/infiniteDrive'
+import { applyRun, clearGuestRecords, loadGuestRecords, recordsFromScores, saveGuestRecords } from '../infinite/infiniteDrive'
 import { isNative, SITE_URL } from '../native/platform'
 
 const SESSION_KEY = 'session'
@@ -87,7 +87,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const guest = loadGuestRecords()
     let records: ReturnType<typeof applyRun>['records'] | null = null
     if (guest) {
-      const applied = applyRun(normalizeRecords(u.infiniteRecords), guest)
+      const applied = applyRun(recordsFromScores(u.drivingHighScores), guest)
       clearGuestRecords()
       if (applied.broken.length > 0) records = applied.records
     }

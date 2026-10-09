@@ -23,10 +23,10 @@ make run dev                     # same, but the backend uses the dev stage's re
 | route | |
 |---|---|
 | `POST /users` `{name}` | register (409 `name-taken`) |
-| `GET /users/{name}` | player data: records, last daily, streak, longest streak, premium |
-| `POST /users/{name}/infinite` `{score, ms, byGear}` | submit records; best of each is kept |
+| `GET /users/{name}` | player: `name`, `premiumFrom`, `premiumUntil`, `createdAt`, `currentStreakStart`, `lastStreakCheckin`, `largestStreak`, `drivingHighScores` (gears 1-5, R) |
+| `POST /users/{name}/infinite` `{drivingHighScores}` | submit scores; best of each is kept |
 | `POST /users/{name}/daily` `{date, result: done\|failed}` | first result per day counts; updates streaks |
 | `POST /users/{name}/premium` `{from, days}` | add premium days |
-| `GET /scoreboard?by=score\|time\|streak&limit=` | top players |
+| `GET /scoreboard?by=score\|streak\|gear-1..gear-5\|gear-R&limit=` | top players: `name`, `largestStreak`, `drivingHighScores` |
 
 There are no passwords (login is a pinky promise), so the API trusts the name it is given.

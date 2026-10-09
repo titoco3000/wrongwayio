@@ -17,6 +17,7 @@ import {
   formatClock,
   loadGuestRecords,
   normalizeRecords,
+  recordsFromScores,
   saveGuestRecords,
   type BrokenRecord,
   type DriveGear,
@@ -67,7 +68,7 @@ export default function InfiniteDriveGame({ onEnd }: GameProps) {
     if (finished.current) return
     finished.current = true
     const run: Run = { score: scoreRef.current, ms: Date.now() - (startedAt ?? Date.now()), byGear: { ...byGear.current } }
-    const { records, broken } = applyRun(normalizeRecords(user ? user.infiniteRecords : loadGuestRecords()), run)
+    const { records, broken } = applyRun(user ? recordsFromScores(user.drivingHighScores) : normalizeRecords(loadGuestRecords()), run)
     if (broken.length > 0) {
       if (user) api.saveInfiniteRecords(user.name, records).then(update).catch(() => {})
       else saveGuestRecords(records)

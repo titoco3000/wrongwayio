@@ -1,3 +1,5 @@
+import { emptyLocalData, loadLocalData, saveLocalData } from '../localData'
+
 /** The speeds points are counted at; 'R' is reverse. */
 export const DRIVE_GEARS = ['1', '2', '3', '4', '5', 'R'] as const
 export type DriveGear = (typeof DRIVE_GEARS)[number]
@@ -18,19 +20,29 @@ export type Run = {
 }
 
 /** Best values ever reached; each is its own record, a run can break any of them. */
-export type Records = Run
+export type Records = Omit<Run, 'ms'>
 
-export type BrokenRecord = { kind: 'gear'; gear: DriveGear } | { kind: 'score' } | { kind: 'time' }
+export type BrokenRecord = { kind: 'gear'; gear: DriveGear } | { kind: 'score' }
+
+/** Records from an account's `drivingHighScores`: best score per gear, in the order of `DRIVE_GEARS`. */
+export function recordsFromScores(scores: readonly number[] | null | undefined): Records {
+  const byGear = emptyByGear()
+  DRIVE_GEARS.forEach((g, i) => (byGear[g] = Number(scores?.[i]) || 0))
+  return { score: Math.max(0, ...Object.values(byGear)), byGear }
+}
+
+/** The `drivingHighScores` of records, in the order of `DRIVE_GEARS`. */
+export const scoresFromRecords = (records: Records): number[] => DRIVE_GEARS.map((g) => records.byGear[g])
 
 /** Fills in whatever a stored value lacks, so old or damaged data still gives usable records. */
 export function normalizeRecords(raw: Partial<Records> | null | undefined): Records {
-  const records: Records = { score: Number(raw?.score) || 0, ms: Number(raw?.ms) || 0, byGear: emptyByGear() }
+  const records: Records = { score: Number(raw?.score) || 0, byGear: emptyByGear() }
   for (const g of DRIVE_GEARS) records.byGear[g] = Number(raw?.byGear?.[g]) || 0
   return records
 }
 
 /** The best of every record after `run`, and which ones the run beat (a run with no points beats nothing). */
-export function applyRun(previous: Records, run: Run): { records: Records; broken: BrokenRecord[] } {
+export function applyRun(previous: Records, run: Records): { records: Records; broken: BrokenRecord[] } {
   const records = normalizeRecords(previous)
   const broken: BrokenRecord[] = []
   for (const gear of DRIVE_GEARS) {
@@ -43,39 +55,23 @@ export function applyRun(previous: Records, run: Run): { records: Records; broke
     records.score = run.score
     broken.push({ kind: 'score' })
   }
-  if (run.score > 0 && run.ms > records.ms) {
-    records.ms = run.ms
-    broken.push({ kind: 'time' })
-  }
   return { records, broken }
 }
 
-// A logged in user's records live on the user (see `User.infiniteRecords`); the guest has no account, so theirs stay here.
-const GUEST_KEY = 'infiniteDrive:guest'
+// A logged in user's records live on the user (see `User.drivingHighScores`); the guest has no account, so theirs stay on the device.
 
+/** The guest's records, or null if they have none. */
 export function loadGuestRecords(): Records | null {
-  try {
-    const saved = JSON.parse(localStorage.getItem(GUEST_KEY) ?? 'null')
-    return saved ? normalizeRecords(saved) : null
-  } catch {
-    return null
-  }
+  const records = recordsFromScores(loadLocalData(null).drivingHighScores)
+  return records.score > 0 ? records : null
 }
 
 export function saveGuestRecords(records: Records) {
-  try {
-    localStorage.setItem(GUEST_KEY, JSON.stringify(records))
-  } catch {
-    // storage unavailable: the records just aren't remembered
-  }
+  saveLocalData(null, { ...loadLocalData(null), drivingHighScores: scoresFromRecords(records) })
 }
 
 export function clearGuestRecords() {
-  try {
-    localStorage.removeItem(GUEST_KEY)
-  } catch {
-    // storage unavailable: nothing to clear
-  }
+  saveLocalData(null, { ...loadLocalData(null), drivingHighScores: emptyLocalData().drivingHighScores })
 }
 
 /** 83000 -> "1:23" */

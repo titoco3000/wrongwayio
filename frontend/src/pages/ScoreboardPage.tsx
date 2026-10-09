@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, apiErrorMessage, scoreboardValue, type ScoreboardEntry, type ScoreboardKind } from '../api'
 import StackPage from '../components/general/StackPage'
-import { DRIVE_GEARS, formatClock } from '../infinite/infiniteDrive'
+import { DRIVE_GEARS } from '../infinite/infiniteDrive'
 import { useI18n } from '../i18n'
 import { useSession } from '../session/SessionProvider'
 
@@ -64,7 +64,7 @@ export default function ScoreboardPage() {
   }, [kind])
 
   const show = (e: ScoreboardEntry) =>
-    kind === 'streak' ? t('scoreboard.days', { count: e.longestStreak }) : kind === 'score' ? `${e.score} · ${formatClock(e.ms)}` : scoreboardValue(e, kind)
+    kind === 'streak' ? t('scoreboard.days', { count: e.largestStreak }) : scoreboardValue(e, kind)
 
   return (
     <StackPage
