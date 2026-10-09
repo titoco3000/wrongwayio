@@ -40,7 +40,7 @@
   "audio.replay": "Reproducir la palabra otra vez",
   "swipe.question": "¿Hacia qué dirección fue el deslizamiento?",
   "swipe.hint": "Desliza a la izquierda o a la derecha",
-  "hand.hint": "Levanta la mano izquierda o derecha",
+  "hand.hint": "Levanta la mano solicitada",
   "hand.loading": "Iniciando la cámara…",
   "hand.allow": "Permite la cámara para la experiencia completa",
   "keyboard.backspace": "Borrar",

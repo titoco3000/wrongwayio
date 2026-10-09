@@ -40,7 +40,7 @@
   "audio.replay": "Play the word again",
   "swipe.question": "The swipe was to what direction?",
   "swipe.hint": "Swipe left or right",
-  "hand.hint": "Raise your left or right hand",
+  "hand.hint": "Raise the requested hand",
   "hand.loading": "Starting the camera…",
   "hand.allow": "Allow camera access for the full experience",
   "keyboard.backspace": "Backspace",
