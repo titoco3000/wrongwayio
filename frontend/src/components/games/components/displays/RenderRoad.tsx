@@ -16,6 +16,11 @@ const SPEED_RESPONSE = 0.6
 const MAX_DT = 0.1
 /** Smallest Y the car reaches; getting there is a crash against the far edge. */
 const CRASH_Y = 0.2
+/**
+ * Default distance from a side edge of the main tile (fraction of its width) at which the car
+ * counts as having exited that way, so it doesn't have to reach the very edge.
+ */
+export const EXIT_MARGIN = 0.3
 /** Car start inside the main tile (0..1 each axis, y grows downwards). */
 const START_X = 0.66
 const START_Y = 0.5
@@ -67,6 +72,8 @@ type Props = {
   onExit?: (side: ExitSide) => void
   /** The car reached the far edge of the main tile. Fires once per approach. */
   onCrash?: () => void
+  /** Distance from a side edge, as a fraction of the tile, at which the car counts as exited. Default EXIT_MARGIN. */
+  exitMargin?: number
 }
 
 /**
@@ -112,7 +119,7 @@ function useUpscaled(src: string): Upscaled {
   return result
 }
 
-export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, currentSpeedRef, topDown = false, onExit, onCrash }: Props) {
+export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, currentSpeedRef, topDown = false, onExit, onCrash, exitMargin = EXIT_MARGIN }: Props) {
   // `steerRef` steers (-1..1). The gear (`speedRef`) sets the speed. The car stays inside the
   // main tile; leaving it sideways resets it to the start and rotates its
   // heading by 90deg, so it stays in the central tile while the world seems to
@@ -125,6 +132,8 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, 
   onExitRef.current = onExit
   const onCrashRef = useRef(onCrash)
   onCrashRef.current = onCrash
+  const marginRef = useRef(exitMargin)
+  marginRef.current = exitMargin
 
   useEffect(() => {
     let x = START_X
@@ -132,6 +141,9 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, 
     // Degrees, 0 = straight up, positive = towards the right.
     let heading = START_HEADING
     let crashed = false
+    // Lowest Y that counts as out through the bottom. After a side exit the car re-enters from the
+    // tile it left, `exitMargin` below the bottom edge, so the world doesn't jump; this is raised until it is back inside.
+    let bottomY = RESPAWN_Y
     // Multiplier actually driven; eases towards `speedRef` instead of jumping.
     let gearSpeed = speedRef.current
     let last = performance.now()
@@ -155,20 +167,25 @@ export default function RenderRoad({ tiles = DEFAULT_TILES, steerRef, speedRef, 
       } else {
         crashed = false
       }
-      if (y > 1) {
+      if (bottomY > RESPAWN_Y && y <= RESPAWN_Y) bottomY = RESPAWN_Y
+      if (y > bottomY) {
         // Out through the bottom: mirror X and turn around.
         heading += 180
         x = 1 - x
         y = RESPAWN_Y
+        bottomY = RESPAWN_Y
         onExitRef.current?.('back')
-      } else if (x > 1 || x < 0) {
+      } else if (bottomY === RESPAWN_Y && (x > 1 - marginRef.current || x < marginRef.current)) {
         // Out through the right turns the heading back left, and vice versa.
         // The old Y becomes the new X (mirrored when leaving left), as the
         // exit edge turns into the start edge.
-        const right = x > 1
+        const right = x > 1 - marginRef.current
+        const x0 = x
         heading -= right ? 90 : -90
         x = right ? y : 1 - y
-        y = RESPAWN_Y
+        // still the distance short of the edge the car was when it exited
+        y = RESPAWN_Y + (right ? 1 - x0 : x0)
+        bottomY = y
         onExitRef.current?.(right ? 'right' : 'left')
       }
       if (currentSpeedRef) currentSpeedRef.current = gearSpeed

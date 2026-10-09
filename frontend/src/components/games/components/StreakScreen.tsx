@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { playSound } from '../../general/gameSound'
 import { Button } from '../../general/ButtonsRow'
 import Container from '../../general/Container'
 import { useI18n } from '../../../i18n'
@@ -25,6 +27,9 @@ function Flame() {
 /** Full-screen streak counter, shown after the first completed daily challenge of the day. */
 export default function StreakScreen({ streak, onContinue }: Props) {
   const { t } = useI18n()
+  useEffect(() => {
+    playSound('streak')
+  }, [])
   return (
     <Container
       scroll={false}

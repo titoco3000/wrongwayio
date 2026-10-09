@@ -6,6 +6,7 @@ import SpeechBubbleDisplay from '../components/displays/SpeechBubbleDisplay'
 import type { GameProps } from '../components/GameRound'
 import InfiniteResultScreen from '../components/InfiniteResultScreen'
 import LoginPromptScreen from '../components/LoginPromptScreen'
+import { playSound } from '../../general/gameSound'
 import StackPage from '../../general/StackPage'
 import { useI18n } from '../../../i18n'
 import { useSession } from '../../../session/SessionProvider'
@@ -53,6 +54,7 @@ export default function InfiniteDriveGame({ onEnd }: GameProps) {
   const byGear = useRef(emptyByGear())
   const gear = useRef<DriveGear>('1')
   const finished = useRef(false)
+  const advancing = useRef(false)
   const doneRef = useRef(false)
 
   useEffect(() => {
@@ -89,11 +91,19 @@ export default function InfiniteDriveGame({ onEnd }: GameProps) {
   }
 
   const answer = (side: Direction) => {
-    if (side !== round.direction) return finish('wrong')
+    if (advancing.current) return
+    if (side !== round.direction) {
+      playSound('incorrect')
+      return finish('wrong')
+    }
+    advancing.current = true
+    void playSound('correct').then(() => {
+      advancing.current = false
+      setRound((r) => ({ index: r.index + 1, direction: randomDirection() }))
+    })
     scoreRef.current += 1
     byGear.current[gear.current] += 1
     setScore(scoreRef.current)
-    setRound((r) => ({ index: r.index + 1, direction: randomDirection() }))
   }
 
   return (

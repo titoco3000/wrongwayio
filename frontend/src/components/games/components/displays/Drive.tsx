@@ -24,11 +24,13 @@ type Props = {
   onExit?: (side: ExitSide) => void
   /** The car reached the far edge of the central tile. */
   onCrash?: () => void
+  /** Distance from a side edge of the tile, as a fraction, at which the car counts as exited. */
+  exitMargin?: number
   /** Called whenever the engaged gear changes. */
   onGear?: (gear: Gear) => void
 }
 
-export default function Drive({ onExit, onCrash, onGear }: Props) {
+export default function Drive({ onExit, onCrash, onGear, exitMargin }: Props) {
   const steerRef = useRef(0)
   const speedRef = useRef(gearSpeed(START_GEAR))
   const currentSpeedRef = useRef(speedRef.current)
@@ -42,6 +44,7 @@ export default function Drive({ onExit, onCrash, onGear }: Props) {
         topDown={topDown}
         onExit={onExit}
         onCrash={onCrash}
+        exitMargin={exitMargin}
       />
       <div className="drive__wheel">
         <SteeringWheel onSteer={(steer) => (steerRef.current = steer)} />

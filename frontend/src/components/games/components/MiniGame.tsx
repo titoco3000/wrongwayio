@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
 import type { Direction } from './displays/DirectionDisplay'
+import { playSound } from '../../general/gameSound'
 import ResultScreen, { type ChallengeProgress } from './ResultScreen'
 
 export type Round = {
@@ -56,21 +57,34 @@ export default function MiniGame({
   const [result, setResult] = useState<'won' | 'lost' | null>(null)
   const [allAnswered, setAllAnswered] = useState(false)
   const finished = useRef(false)
+  // true while the correct sound plays, before the next round starts
+  const [advancing, setAdvancing] = useState(false)
+  const advancingRef = useRef(false)
   const onEndRef = useRef(onEnd)
   onEndRef.current = onEnd
 
   const answer = (value: Direction) => {
-    if (finished.current) return false
+    if (finished.current || advancingRef.current) return false
     const correct = value === directions[index]
+    const sound = playSound(correct ? 'correct' : 'incorrect')
     if (!correct) {
       finished.current = true
       setResult('lost')
     } else if (index + 1 >= loops) {
       finished.current = true
       setAllAnswered(true)
-      setTimeout(() => setResult('won'), winDelayMs)
+      setTimeout(() => {
+        playSound('win')
+        setResult('won')
+      }, winDelayMs)
     } else {
-      setIndex(index + 1)
+      advancingRef.current = true
+      setAdvancing(true)
+      void sound.then(() => {
+        advancingRef.current = false
+        setAdvancing(false)
+        setIndex(index + 1)
+      })
     }
     return correct
   }
@@ -80,6 +94,7 @@ export default function MiniGame({
     if (finished.current || ended.current) return
     finished.current = true
     ended.current = true
+    playSound('incorrect')
     onEndRef.current(false)
   }
   const onContinue = () => {
@@ -90,7 +105,7 @@ export default function MiniGame({
 
   return (
     <>
-      {children({ direction: directions[index], index, completed: index + (allAnswered ? 1 : 0), loops, answer, endLost })}
+      {children({ direction: directions[index], index, completed: index + (allAnswered || advancing ? 1 : 0), loops, answer, endLost })}
       {result === 'won' && (winScreen ? winScreen({ onContinue }) : <ResultScreen won onContinue={onContinue} progress={progress} />)}
       {result === 'lost' && (loseScreen ? loseScreen({ onContinue }) : <ResultScreen won={false} onContinue={onContinue} />)}
     </>
