@@ -84,7 +84,7 @@
   "game.drive": "Dirigir",
 
   "result.won": "Mandou bem!",
-  "result.lost": "Caminho errado!",
+  "result.lost": "Lado errado!",
   "result.crashed": "O prédio não era de borracha...",
   "result.progress": "{completed} de {total} jogos concluídos",
   "timeout.title": "O tempo acabou!",

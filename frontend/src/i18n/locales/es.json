@@ -84,7 +84,7 @@
   "game.drive": "Conducir",
 
   "result.won": "¡Lo lograste!",
-  "result.lost": "¡Camino equivocado!",
+  "result.lost": "¡Dirección equivocada!",
   "result.crashed": "¡Chocaste!",
   "result.progress": "{completed} de {total} juegos completados",
   "timeout.title": "¡Se acabó el tiempo!",
