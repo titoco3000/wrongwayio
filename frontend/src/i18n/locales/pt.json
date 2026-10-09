@@ -66,6 +66,12 @@
   "streak.hint.one": "Volte amanhã para continuar.",
   "streak.hint.other": "Continue amanhã.",
 
+  "brokenStreak.title": "Sequência perdida",
+  "brokenStreak.body.one": "Você perdeu um dia e sua sequência de 1 dia acabou.",
+  "brokenStreak.body.other": "Você perdeu um dia e sua sequência de {count} dias acabou.",
+  "brokenStreak.hint": "Jogue o desafio de hoje para começar outra.",
+  "brokenStreak.action": "Recomeçar",
+
   "games.title": "Jogos",
   "games.round": "Jogo {number}: {name}",
   "game.arrowLabeled": "Seta, botões com texto",

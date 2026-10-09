@@ -1,4 +1,4 @@
-import { daysBetween, emptyLocalData, loadLocalData, saveLocalData, streakLength, type Owner } from '../localData'
+import { daysBetween, emptyLocalData, loadLocalData, ownerId, saveLocalData, streakLength, type Owner } from '../localData'
 
 export const DAILY_GAME_COUNT = 5
 
@@ -52,6 +52,32 @@ export function loadDailyResult(owner: Owner): DailyResult | null {
 export function loadStreak(owner: Owner): number {
   const data = loadLocalData(owner)
   return data.lastStreakCheckin === todayKey() || data.lastStreakCheckin === yesterdayKey() ? streakLength(data) : 0
+}
+
+const seenKey = (owner: Owner) => `brokenStreakSeen:${ownerId(owner)}`
+
+/** Days of the streak lost by missing yesterday, or 0 if nothing was lost or the player was already told. */
+export function unseenBrokenStreak(owner: Owner): number {
+  const data = loadLocalData(owner)
+  const last = data.lastStreakCheckin
+  if (!last || last >= yesterdayKey()) return 0
+  try {
+    if (localStorage.getItem(seenKey(owner)) === last) return 0
+  } catch {
+    // storage unavailable: the page may show again
+  }
+  return streakLength(data)
+}
+
+/** Remembers the player was told about the streak they lost, so the page shows once per broken streak. */
+export function markBrokenStreakSeen(owner: Owner) {
+  const last = loadLocalData(owner).lastStreakCheckin
+  if (!last) return
+  try {
+    localStorage.setItem(seenKey(owner), last)
+  } catch {
+    // storage unavailable: the page may show again
+  }
 }
 
 /** Saves today's result, like the server does: the first result of a day counts. Returns the streak after a win. */

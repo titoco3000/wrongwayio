@@ -66,6 +66,12 @@
   "streak.hint.one": "Come back tomorrow to keep it going.",
   "streak.hint.other": "Keep it going tomorrow.",
 
+  "brokenStreak.title": "Streak broken",
+  "brokenStreak.body.one": "You missed a day and lost your 1-day streak.",
+  "brokenStreak.body.other": "You missed a day and lost your {count}-day streak.",
+  "brokenStreak.hint": "Play today's challenge to start a new one.",
+  "brokenStreak.action": "Start again",
+
   "games.title": "Games",
   "games.round": "Game {number}: {name}",
   "game.arrowLabeled": "Arrow, labeled buttons",
