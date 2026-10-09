@@ -47,7 +47,7 @@ export default function DirectionHandInput({ onSubmit, disabled, onPause }: Prop
   useEffect(() => {
     const canvas = canvasRef.current!
     const ctx = canvas.getContext('2d')!
-    const { ready, release } = acquireHandSession()
+    const { ready, release, discard } = acquireHandSession()
     let cancelled = false
     let frame = 0
     let submitted = false
@@ -83,7 +83,17 @@ export default function DirectionHandInput({ onSubmit, disabled, onPause }: Prop
           const now = performance.now()
           if (video.currentTime !== lastVideoTime) {
             lastVideoTime = video.currentTime
-            const result = recognizer.recognizeForVideo(video, now)
+            let result
+            try {
+              result = recognizer.recognizeForVideo(video, now)
+            } catch (e) {
+              // e.g. the WebGL context was lost: nothing to recover here, so play with the arrow buttons
+              console.error('hand tracking failed', e)
+              cancelAnimationFrame(frame)
+              discard()
+              setStatus('denied')
+              return
+            }
             hands = result.landmarks.map((points, i) => {
               const gesture = result.gestures[i]?.[0]
               return { points, palm: gesture?.categoryName === 'Open_Palm' && gesture.score >= MIN_PALM_SCORE }

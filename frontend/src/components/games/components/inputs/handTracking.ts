@@ -13,7 +13,17 @@ let session: Promise<OpenSession> | null = null
 let users = 0
 let releaseTimer: ReturnType<typeof setTimeout> | undefined
 
+/** MediaPipe needs WebGL even on its CPU delegate (it uploads the video frames as textures). */
+function requireWebGL() {
+  const canvas = document.createElement('canvas')
+  const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl')
+  if (!gl) throw new Error('WebGL is not available')
+  // the probe must not use up one of the few contexts a page may have
+  gl.getExtension('WEBGL_lose_context')?.loseContext()
+}
+
 async function createRecognizer(): Promise<GestureRecognizer> {
+  requireWebGL()
   const { FilesetResolver, GestureRecognizer } = await import('@mediapipe/tasks-vision')
   const fileset = await FilesetResolver.forVisionTasks('/mediapipe/wasm')
   const make = (delegate: 'GPU' | 'CPU') =>
@@ -57,7 +67,7 @@ async function start(): Promise<OpenSession> {
  * Opens the camera and the hand recognizer, shared by every input mounted at the same time or right after
  * one another. Call `release` when done; the camera stops shortly after the last release.
  */
-export function acquireHandSession(): { ready: Promise<HandSession>; release: () => void } {
+export function acquireHandSession(): { ready: Promise<HandSession>; release: () => void; discard: () => void } {
   clearTimeout(releaseTimer)
   users++
   const current = (session ??= start().catch((e) => {
@@ -67,6 +77,11 @@ export function acquireHandSession(): { ready: Promise<HandSession>; release: ()
   let released = false
   return {
     ready: current,
+    /** The session turned out to be broken: stops it now, so the next acquire starts a new one. */
+    discard: () => {
+      if (session === current) session = null
+      current.then((s) => s.stop(), () => {})
+    },
     release: () => {
       if (released) return
       released = true
