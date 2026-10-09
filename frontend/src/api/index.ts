@@ -22,12 +22,14 @@ export type User = {
   largestStreak: number
   /** best score of infinite driving in each gear: 1, 2, 3, 4, 5, R */
   drivingHighScores: number[]
+  /** most games won in a row in the marathon */
+  marathonHighScore: number
 }
 
 /** One row of the scoreboard. */
-export type ScoreboardEntry = Pick<User, 'name' | 'largestStreak' | 'drivingHighScores'>
+export type ScoreboardEntry = Pick<User, 'name' | 'largestStreak' | 'drivingHighScores' | 'marathonHighScore'>
 /** `score` is infinite driving overall, `gear-X` its points in one gear */
-export type ScoreboardKind = 'score' | 'streak' | `gear-${DriveGear}`
+export type ScoreboardKind = 'score' | 'streak' | 'marathon' | `gear-${DriveGear}`
 
 export type ApiErrorCode = 'name-taken' | 'invalid-name' | 'not-found' | 'offline' | 'server'
 
@@ -74,7 +76,7 @@ const writeTable = (table: Table) => {
 
 /** What a board ranks an entry by. */
 export const scoreboardValue = (e: ScoreboardEntry, by: ScoreboardKind) =>
-  by === 'streak' ? e.largestStreak : by === 'score' ? Math.max(0, ...e.drivingHighScores) : (e.drivingHighScores[DRIVE_GEARS.indexOf(by.slice(5) as DriveGear)] ?? 0)
+  by === 'streak' ? e.largestStreak : by === 'marathon' ? (e.marathonHighScore ?? 0) : by === 'score' ? Math.max(0, ...e.drivingHighScores) : (e.drivingHighScores[DRIVE_GEARS.indexOf(by.slice(5) as DriveGear)] ?? 0)
 
 const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') || null
 
@@ -136,6 +138,7 @@ const stubApi = {
       lastStreakCheckin: null,
       largestStreak: 0,
       drivingHighScores: [0, 0, 0, 0, 0, 0],
+      marathonHighScore: 0,
     }
     writeTable({ ...table, [keyOf(name)]: user })
     return user
@@ -148,6 +151,17 @@ const stubApi = {
     const user = table[keyOf(name)]
     if (!user) throw new ApiError('not-found')
     const updated: User = { ...user, drivingHighScores: scoresFromRecords(records) }
+    writeTable({ ...table, [keyOf(name)]: updated })
+    return updated
+  },
+
+  /** Keeps the user's best marathon score. */
+  async saveMarathonRecord(name: string, score: number): Promise<User> {
+    await delay()
+    const table = readTable()
+    const user = table[keyOf(name)]
+    if (!user) throw new ApiError('not-found')
+    const updated: User = { ...user, marathonHighScore: Math.max(user.marathonHighScore ?? 0, score) }
     writeTable({ ...table, [keyOf(name)]: updated })
     return updated
   },
@@ -181,6 +195,7 @@ const stubApi = {
         name: u.name,
         largestStreak: u.largestStreak ?? 0,
         drivingHighScores: u.drivingHighScores ?? [],
+        marathonHighScore: u.marathonHighScore ?? 0,
       }))
       .filter((e) => value(e) > 0)
       .sort((a, b) => value(b) - value(a) || a.name.localeCompare(b.name))
@@ -198,6 +213,7 @@ const realApi: typeof stubApi = {
   },
   createUser: (name) => request<User>('/users', { name: cleanName(name) }),
   saveInfiniteRecords: (name, records) => request<User>(`${userPath(name)}/infinite`, { drivingHighScores: scoresFromRecords(records) }),
+  saveMarathonRecord: (name, score) => request<User>(`${userPath(name)}/marathon`, { marathonHighScore: score }),
   saveDailyResult: (name, date, result, streak) => request<User>(`${userPath(name)}/daily`, { date, result, streak }),
   grantPremium: (name, from, days) => request<User>(`${userPath(name)}/premium`, { from, days }),
   getScoreboard: (by) => request<ScoreboardEntry[]>(`/scoreboard?by=${by}`),

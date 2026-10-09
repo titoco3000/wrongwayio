@@ -5,8 +5,8 @@ import { DRIVE_GEARS } from '../infinite/infiniteDrive'
 import { useI18n } from '../i18n'
 import { useSession } from '../session/SessionProvider'
 
-type Tab = 'streak' | 'driving'
-const TABS: Tab[] = ['streak', 'driving']
+type Tab = 'streak' | 'driving' | 'marathon'
+const TABS: Tab[] = ['streak', 'driving', 'marathon']
 /** Driving sub-tabs: overall, then each gear. */
 const SUBTABS: ScoreboardKind[] = ['score', ...DRIVE_GEARS.map((g) => `gear-${g}` as const)]
 
@@ -45,7 +45,7 @@ export default function ScoreboardPage() {
   const { user } = useSession()
   const [tab, setTab] = useState<Tab>('streak')
   const [sub, setSub] = useState<ScoreboardKind>('score')
-  const kind: ScoreboardKind = tab === 'streak' ? 'streak' : sub
+  const kind: ScoreboardKind = tab === 'driving' ? sub : tab
   // null while loading
   const [entries, setEntries] = useState<ScoreboardEntry[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -72,7 +72,7 @@ export default function ScoreboardPage() {
       header={<h1 className="text-xl">{t('scoreboard.title')}</h1>}
       body={
         <div className="flex flex-col gap-4 p-4">
-          <Tabs items={TABS} value={tab} label={(k) => t(`scoreboard.${k}`)} onChange={setTab} className="grid grid-cols-2 gap-2" />
+          <Tabs items={TABS} value={tab} label={(k) => t(`scoreboard.${k}`)} onChange={setTab} className="grid grid-cols-3 gap-2" />
           {tab === 'driving' && (
             <Tabs
               items={SUBTABS}

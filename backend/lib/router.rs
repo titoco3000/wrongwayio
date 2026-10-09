@@ -3,10 +3,11 @@
 //! - `POST /users` `{name}`: register. 409 `name-taken` if the name exists in any case.
 //! - `GET  /users/{name}`: the player's data.
 //! - `POST /users/{name}/infinite` `{drivingHighScores: [1,2,3,4,5,R]}`: submit records; the best of each is kept.
+//! - `POST /users/{name}/marathon` `{marathonHighScore}`: submit the marathon record; the best is kept.
 //! - `POST /users/{name}/daily` `{date, result, streak?}`: submit a daily challenge result; streaks follow.
 //!   `streak` is the win streak the player already has on their device, ending on `date`; a longer one is adopted.
 //! - `POST /users/{name}/premium` `{from, days}`: add premium days.
-//! - `GET  /scoreboard?by=score|streak|gear-1..gear-5|gear-R&limit=N`: top players.
+//! - `GET  /scoreboard?by=score|streak|marathon|gear-1..gear-5|gear-R&limit=N`: top players.
 //!
 //! There are no passwords in WrongWayio (logging in is a pinky promise), so
 //! these routes take the player's name at its word.
@@ -31,6 +32,7 @@ pub fn app(store: Store) -> Router {
         .route("/users", post(register))
         .route("/users/{name}", get(get_user))
         .route("/users/{name}/infinite", post(submit_infinite))
+        .route("/users/{name}/marathon", post(submit_marathon))
         .route("/users/{name}/daily", post(submit_daily))
         .route("/users/{name}/premium", post(grant_premium))
         .route("/scoreboard", get(scoreboard))
@@ -55,6 +57,7 @@ pub struct UserView {
     last_streak_checkin: Option<String>,
     largest_streak: u32,
     driving_high_scores: [u32; 6],
+    marathon_high_score: u32,
 }
 
 impl From<User> for UserView {
@@ -68,6 +71,7 @@ impl From<User> for UserView {
             last_streak_checkin: u.last_streak_checkin,
             largest_streak: u.largest_streak,
             driving_high_scores: u.driving_high_scores,
+            marathon_high_score: u.marathon_high_score,
         }
     }
 }
@@ -111,6 +115,26 @@ async fn submit_infinite(
     let user = store
         .update(&name_key(&name), |u| {
             u.merge_scores(&body.driving_high_scores);
+            Ok(())
+        })
+        .await?;
+    Ok(Json(user.into()))
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SubmitMarathon {
+    marathon_high_score: u32,
+}
+
+async fn submit_marathon(
+    State(store): State<Store>,
+    Path(name): Path<String>,
+    Json(body): Json<SubmitMarathon>,
+) -> Result<Json<UserView>, ApiError> {
+    let user = store
+        .update(&name_key(&name), |u| {
+            u.merge_marathon(body.marathon_high_score);
             Ok(())
         })
         .await?;
@@ -174,11 +198,13 @@ pub struct Entry {
     name: String,
     largest_streak: u32,
     driving_high_scores: [u32; 6],
+    marathon_high_score: u32,
 }
 
 #[derive(Clone, Copy, Debug)]
 enum Board {
     Score,
+    Marathon,
     Streak,
     /// points scored in one gear: "1".."5" or "R"
     Gear(char),
@@ -189,13 +215,14 @@ impl Board {
         match by {
             None | Some("score") => Ok(Board::Score),
             Some("streak") => Ok(Board::Streak),
+            Some("marathon") => Ok(Board::Marathon),
             Some(by) => match by
                 .strip_prefix("gear-")
                 .and_then(|g| g.chars().next().filter(|_| by.len() == 6))
             {
                 Some(g @ ('1'..='5' | 'R')) => Ok(Board::Gear(g)),
                 _ => Err(ApiError::Invalid(
-                    "by must be score, streak or gear-1..gear-5, gear-R",
+                    "by must be score, streak, marathon or gear-1..gear-5, gear-R",
                 )),
             },
         }
@@ -211,6 +238,7 @@ impl Board {
                 .unwrap_or(0)
                 .into(),
             Board::Streak => e.largest_streak.into(),
+            Board::Marathon => e.marathon_high_score.into(),
             Board::Gear(g) => GEARS
                 .iter()
                 .position(|x| *x == g)
@@ -227,6 +255,7 @@ fn rank(users: Vec<User>, board: Board, limit: usize) -> Vec<Entry> {
         .map(|u| Entry {
             largest_streak: u.largest_streak,
             driving_high_scores: u.driving_high_scores,
+            marathon_high_score: u.marathon_high_score,
             name: u.name,
         })
         .filter(|e| board.value(e) > 0)
@@ -278,6 +307,19 @@ mod tests {
         assert_eq!(names(Board::Score), ["al", "Ann", "bob"]);
         assert_eq!(names(Board::Streak), ["cy"]);
         assert_eq!(rank(users, Board::Score, 2).len(), 2);
+    }
+
+    #[test]
+    fn ranks_by_marathon() {
+        let mut a = player("aa", 9, 0);
+        a.marathon_high_score = 3;
+        let mut b = player("bb", 1, 0);
+        b.marathon_high_score = 8;
+        let names = rank(vec![a, b, player("cc", 50, 0)], Board::Marathon, 10)
+            .into_iter()
+            .map(|e| e.name)
+            .collect::<Vec<_>>();
+        assert_eq!(names, ["bb", "aa"]);
     }
 
     #[test]

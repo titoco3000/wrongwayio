@@ -1,5 +1,6 @@
 import { keySoundProps } from '../components/general/keySound'
 import { useState } from 'react'
+import MarathonPage from './MarathonPage'
 import PagesStack, { useStack } from '../components/general/PagesStack'
 import StackPage from '../components/general/StackPage'
 import { games } from '../components/games/minigames'
@@ -25,14 +26,21 @@ function RoundPage({ Game }: { Game: (typeof games)[number]['Component'] }) {
 
 export default function GamePage() {
   const { t } = useI18n()
-  const [playing, setPlaying] = useState<number | 'infinite' | null>(null)
-  const Game = playing === null ? null : playing === 'infinite' ? InfiniteDriveGame : games[playing].Component
+  const [playing, setPlaying] = useState<number | 'infinite' | 'marathon' | null>(null)
+  const Game =
+    playing === null ? null : playing === 'infinite' ? InfiniteDriveGame : playing === 'marathon' ? MarathonPage : games[playing].Component
   return (
     <StackPage
       nav="back"
       header={<h1 className="text-xl">{t('games.title')}</h1>}
       body={
         <div className="p-4">
+          <Button className="w-full" onClick={() => setPlaying('infinite')}>
+            {t('infinite.title')}
+          </Button>
+          <Button className="mt-3 mb-6 w-full" onClick={() => setPlaying('marathon')}>
+            {t('marathon.title')}
+          </Button>
           <div className="grid grid-cols-3 gap-3">
             {games.map((g, i) => (
               <button
@@ -46,9 +54,6 @@ export default function GamePage() {
               </button>
             ))}
           </div>
-          <Button className="mt-6 w-full" onClick={() => setPlaying('infinite')}>
-            {t('infinite.title')}
-          </Button>
           {Game && <PagesStack initial={<RoundPage Game={Game} />} onEmpty={() => setPlaying(null)} />}
         </div>
       }

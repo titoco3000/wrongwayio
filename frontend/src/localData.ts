@@ -5,7 +5,7 @@
 
 import type { User } from './api'
 
-export type LocalData = Pick<User, 'currentStreakStart' | 'lastStreakCheckin' | 'largestStreak' | 'drivingHighScores'>
+export type LocalData = Pick<User, 'currentStreakStart' | 'lastStreakCheckin' | 'largestStreak' | 'drivingHighScores' | 'marathonHighScore'>
 
 /** Whose data this is: a user's name, or null for a guest. */
 export type Owner = string | null
@@ -21,6 +21,7 @@ export const emptyLocalData = (): LocalData => ({
   lastStreakCheckin: null,
   largestStreak: 0,
   drivingHighScores: [0, 0, 0, 0, 0, 0],
+  marathonHighScore: 0,
 })
 
 /** Fills in whatever a stored value lacks, so old or damaged data still gives usable fields. */
@@ -31,6 +32,7 @@ export function normalizeLocalData(raw: Partial<LocalData> | null | undefined): 
     lastStreakCheckin: typeof raw?.lastStreakCheckin === 'string' ? raw.lastStreakCheckin : null,
     largestStreak: Number(raw?.largestStreak) || 0,
     drivingHighScores: empty.drivingHighScores.map((_, i) => Number(raw?.drivingHighScores?.[i]) || 0),
+    marathonHighScore: Number(raw?.marathonHighScore) || 0,
   }
 }
 

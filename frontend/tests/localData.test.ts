@@ -9,7 +9,7 @@ describe('local data', () => {
   it('is stored with the fields the server keeps on a user', () => {
     saveDailyResult(null, 'done')
     saveGuestRecords(recordsFromScores([0, 3, 0, 0, 0, 0]))
-    expect(loadLocalData(null)).toEqual({ currentStreakStart: todayKey(), lastStreakCheckin: todayKey(), largestStreak: 1, drivingHighScores: [0, 3, 0, 0, 0, 0] })
+    expect(loadLocalData(null)).toEqual({ currentStreakStart: todayKey(), lastStreakCheckin: todayKey(), largestStreak: 1, drivingHighScores: [0, 3, 0, 0, 0, 0], marathonHighScore: 0 })
   })
 
   it('the first daily result of a day counts, a loss ends the streak', () => {

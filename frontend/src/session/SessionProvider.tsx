@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { api, type User } from '../api'
 import { adoptGuestData, pendingDailySync } from '../daily/dailyChallenge'
 import { applyRun, clearGuestRecords, loadGuestRecords, recordsFromScores, saveGuestRecords } from '../infinite/infiniteDrive'
+import { clearGuestMarathon, loadGuestMarathon, saveGuestMarathon } from '../infinite/marathon'
 import { isNative, SITE_URL } from '../native/platform'
 
 const SESSION_KEY = 'session'
@@ -91,8 +92,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       clearGuestRecords()
       if (applied.broken.length > 0) records = applied.records
     }
+    const guestMarathon = loadGuestMarathon()
+    if (guestMarathon > 0) clearGuestMarathon()
+    const marathon = guestMarathon > (u.marathonHighScore ?? 0) ? guestMarathon : 0
     const daily = pendingDailySync(u.name)
-    if (records || daily.length > 0) {
+    if (records || marathon > 0 || daily.length > 0) {
       // sync what this device holds with the account; a failure leaves the account as it was
       void (async () => {
         let latest = u
@@ -102,6 +106,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           } catch (e) {
             console.warn('records sync failed', e)
             if (guest) saveGuestRecords(guest)
+          }
+        }
+        if (marathon > 0) {
+          try {
+            latest = await api.saveMarathonRecord(u.name, marathon)
+          } catch (e) {
+            console.warn('marathon sync failed', e)
+            saveGuestMarathon(marathon)
           }
         }
         try {

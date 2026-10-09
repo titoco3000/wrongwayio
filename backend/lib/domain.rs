@@ -54,6 +54,8 @@ pub struct User {
     pub largest_streak: u32,
     /// Best score in each gear, in the order of [`GEARS`]: 1, 2, 3, 4, 5, R.
     pub driving_high_scores: [u32; 6],
+    /// Most games won in a row in marathon mode.
+    pub marathon_high_score: u32,
 }
 
 const DAY_MS: i64 = 24 * 60 * 60 * 1000;
@@ -106,6 +108,13 @@ impl User {
             *mine = (*mine).max(theirs);
         }
         self.driving_high_scores != before
+    }
+
+    /// Keeps the best marathon score. Returns whether anything changed.
+    pub fn merge_marathon(&mut self, score: u32) -> bool {
+        let changed = score > self.marathon_high_score;
+        self.marathon_high_score = self.marathon_high_score.max(score);
+        changed
     }
 
     /// Records the result of the daily challenge played on `date`.
@@ -224,6 +233,14 @@ mod tests {
         assert_eq!(u.driving_high_scores, [4, 0, 6, 0, 0, 0]);
         assert_eq!(u.best_score(), 6);
         assert!(!u.merge_scores(&b));
+    }
+
+    #[test]
+    fn marathon_keeps_the_best() {
+        let mut u = user();
+        assert!(u.merge_marathon(4));
+        assert!(!u.merge_marathon(3));
+        assert_eq!(u.marathon_high_score, 4);
     }
 
     #[test]
