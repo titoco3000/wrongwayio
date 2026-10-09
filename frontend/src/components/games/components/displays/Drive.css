@@ -1,5 +1,13 @@
 .drive {
-  --wheel-size: 16rem;
+  /* Everything inside scales with the width of the drive area (cqw units). */
+  container-type: inline-size;
+  width: 100%;
+}
+
+.drive__body {
+  --wheel-size: min(50cqw, 16rem);
+  --gauge-size: calc(var(--wheel-size) * 0.4);
+  --gap: calc(var(--wheel-size) / 20);
   position: relative;
   width: 100%;
   /* Room for the lower half of the wheel, which hangs below the road. */
@@ -10,7 +18,7 @@
 .drive__wheel {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--wheel-size) / 2 + 10px);
+  bottom: calc(var(--wheel-size) / 2 + var(--gap));
   width: var(--wheel-size);
   transform: translate(-50%, 50%);
 }
@@ -19,9 +27,8 @@
 .drive__shifter {
   position: absolute;
   right: 75%;
-  bottom: 10px;
-  width: calc(50% - var(--wheel-size) / 2 - 4px);
-  max-width: 7rem;
+  bottom: var(--gap);
+  width: var(--gauge-size);
   z-index: 1;
   opacity: 0.5;
 }
@@ -30,15 +37,16 @@
 .drive__speedometer {
   position: absolute;
   left: 75%;
-  bottom: 10px;
-  width: calc(50% - var(--wheel-size) / 2 - 4px);
-  max-width: 7rem;
+  bottom: var(--gap);
+  width: var(--gauge-size);
   z-index: 1;
 }
 
 /* Centred between the shifter and the wheel, just under the road. */
 .drive__view {
   position: absolute;
+  /* Scales the em-sized switch with the wheel. */
+  font-size: calc(var(--wheel-size) / 16);
   left: 2%;
   bottom: calc(var(--wheel-size) / 3);
   transform: translate(-50%, 100%);

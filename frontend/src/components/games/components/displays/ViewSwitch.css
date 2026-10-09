@@ -1,10 +1,10 @@
 /* Vertical switch: handle at the bottom = perspective, at the top = top-down. */
 .view-switch {
-  --rail-length: 2rem;
-  --handle-height: 0.8rem;
+  --rail-length: 2em;
+  --handle-height: 0.8em;
   position: relative;
   display: block;
-  width: 1.6rem;
+  width: 1.6em;
   height: calc(var(--rail-length) + var(--handle-height));
   cursor: pointer;
   user-select: none;
@@ -21,9 +21,9 @@
   left: 50%;
   top: calc(var(--handle-height) / 2);
   bottom: calc(var(--handle-height) / 2);
-  width: 0.25rem;
+  width: 0.25em;
   transform: translateX(-50%);
-  border-radius: 0.125rem;
+  border-radius: 0.125em;
   background: #1a1a1a;
 }
 
@@ -33,7 +33,7 @@
   right: 0;
   bottom: 0;
   height: var(--handle-height);
-  border-radius: 0.4rem;
+  border-radius: 0.4em;
   background: #1a1a1a;
   transition: transform 0.15s, background 0.15s;
 }
