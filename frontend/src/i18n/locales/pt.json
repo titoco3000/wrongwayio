@@ -66,10 +66,14 @@
   "streak.hint.one": "Volte amanhã para continuar.",
   "streak.hint.other": "Continue amanhã.",
 
-  "brokenStreak.title": "Sequência perdida",
-  "brokenStreak.body.one": "Você perdeu um dia e sua sequência de 1 dia acabou.",
-  "brokenStreak.body.other": "Você perdeu um dia e sua sequência de {count} dias acabou.",
-  "brokenStreak.hint": "Jogue o desafio de hoje para começar outra.",
+  "brokenStreak.missed.title": "Sequência perdida",
+  "brokenStreak.missed.body.one": "Você perdeu um dia e sua sequência de 1 dia acabou.",
+  "brokenStreak.missed.body.other": "Você perdeu um dia e sua sequência de {count} dias acabou.",
+  "brokenStreak.missed.hint": "Jogue o desafio de hoje para começar outra.",
+  "brokenStreak.failed.title": "Desafio perdido",
+  "brokenStreak.failed.body.one": "Você perdeu o desafio de hoje e sua sequência de 1 dia.",
+  "brokenStreak.failed.body.other": "Você perdeu o desafio de hoje e sua sequência de {count} dias.",
+  "brokenStreak.failed.hint": "Tente amanhã para começar uma sequência.",
   "brokenStreak.action": "Recomeçar",
 
   "games.title": "Jogos",

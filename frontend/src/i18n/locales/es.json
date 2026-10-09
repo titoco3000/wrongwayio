@@ -66,10 +66,14 @@
   "streak.hint.one": "Vuelve mañana para seguir con la racha.",
   "streak.hint.other": "Sigue así mañana.",
 
-  "brokenStreak.title": "Racha perdida",
-  "brokenStreak.body.one": "Te saltaste un día y perdiste tu racha de 1 día.",
-  "brokenStreak.body.other": "Te saltaste un día y perdiste tu racha de {count} días.",
-  "brokenStreak.hint": "Juega el reto de hoy para empezar otra.",
+  "brokenStreak.missed.title": "Racha perdida",
+  "brokenStreak.missed.body.one": "Te saltaste un día y perdiste tu racha de 1 día.",
+  "brokenStreak.missed.body.other": "Te saltaste un día y perdiste tu racha de {count} días.",
+  "brokenStreak.missed.hint": "Juega el reto de hoy para empezar otra.",
+  "brokenStreak.failed.title": "Reto fallido",
+  "brokenStreak.failed.body.one": "Perdiste el reto de hoy y tu racha de 1 día.",
+  "brokenStreak.failed.body.other": "Perdiste el reto de hoy y tu racha de {count} días.",
+  "brokenStreak.failed.hint": "Inténtalo mañana para empezar una racha.",
   "brokenStreak.action": "Empezar de nuevo",
 
   "games.title": "Juegos",

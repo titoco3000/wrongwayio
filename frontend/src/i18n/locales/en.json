@@ -66,10 +66,14 @@
   "streak.hint.one": "Come back tomorrow to keep it going.",
   "streak.hint.other": "Keep it going tomorrow.",
 
-  "brokenStreak.title": "Streak broken",
-  "brokenStreak.body.one": "You missed a day and lost your 1-day streak.",
-  "brokenStreak.body.other": "You missed a day and lost your {count}-day streak.",
-  "brokenStreak.hint": "Play today's challenge to start a new one.",
+  "brokenStreak.missed.title": "Streak broken",
+  "brokenStreak.missed.body.one": "You missed a day and lost your 1-day streak.",
+  "brokenStreak.missed.body.other": "You missed a day and lost your {count}-day streak.",
+  "brokenStreak.missed.hint": "Play today's challenge to start a new one.",
+  "brokenStreak.failed.title": "Challenge failed",
+  "brokenStreak.failed.body.one": "You lost today's challenge and your 1-day streak.",
+  "brokenStreak.failed.body.other": "You lost today's challenge and your {count}-day streak.",
+  "brokenStreak.failed.hint": "Try again tomorrow to start a streak.",
   "brokenStreak.action": "Start again",
 
   "games.title": "Games",
