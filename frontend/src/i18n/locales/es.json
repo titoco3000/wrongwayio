@@ -43,6 +43,11 @@
   "hand.hint": "Levanta la mano solicitada",
   "hand.loading": "Iniciando la cámara…",
   "hand.allow": "Permite la cámara para la experiencia completa",
+  "speech.hint": "Di {left} o {right}",
+  "speech.loading": "Iniciando el micrófono…",
+  "speech.allow": "Permite el micrófono para la experiencia completa",
+  "speech.aliases.left": "",
+  "speech.aliases.right": "",
   "keyboard.backspace": "Borrar",
   "view.topDown": "Vista desde arriba",
 
@@ -74,6 +79,8 @@
   "game.audioArrow": "Audio, botones de flecha",
   "game.audioSwipe": "Audio, deslizar",
   "game.audioHand": "Audio, levantar la mano",
+  "game.arrowSpeech": "Flecha, hablar",
+  "game.swipeSpeech": "Deslizar, hablar",
   "game.audioDrive": "Audio, conducir",
   "game.drive": "Conducir",
 

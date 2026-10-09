@@ -34,6 +34,16 @@ export default defineConfig({
         // the shell serves every route, so a gift link opened offline still loads
         navigateFallback: '/index.html',
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        // the speech engine bundles its WASM: too big to precache, cached on first use like the models
+        globIgnores: ['**/assets/vosk-*.js'],
+        // too big to precache: the speech and hand-tracking models are cached the first time a game uses them
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/models/') || url.pathname.startsWith('/mediapipe/') || url.pathname.startsWith('/assets/vosk-'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'game-models', cacheableResponse: { statuses: [200] } },
+          },
+        ],
       },
     }),
   ],

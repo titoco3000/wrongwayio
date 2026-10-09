@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createNative, getNative, setNative } from '../src/native'
 import { MockNotifications } from '../src/native/notifications'
 import { MockCamera } from '../src/native/camera'
-import { MockSpeech, WebSpeech, type Transcript } from '../src/native/speech'
+import { MockSpeech, VoskSpeech, type Transcript } from '../src/native/speech'
 import { WebCamera } from '../src/native/camera'
 import { WebNotifications } from '../src/native/notifications'
 
@@ -72,7 +72,7 @@ describe('selection', () => {
       const n = createNative(native)
       expect(n.notifications).toBeInstanceOf(WebNotifications)
       expect(n.camera).toBeInstanceOf(WebCamera)
-      expect(n.speech).toBeInstanceOf(WebSpeech)
+      expect(n.speech).toBeInstanceOf(VoskSpeech)
     }
   })
 

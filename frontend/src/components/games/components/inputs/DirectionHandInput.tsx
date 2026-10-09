@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Direction } from '../displays/DirectionDisplay'
 import type { Point } from '../../hooks/useClickOrigin'
-import { Button } from '../../../general/ButtonsRow'
-import DirectionArrowInput from './DirectionArrowInput'
+import InputFallback from './InputFallback'
 import { acquireHandSession, HAND_BONES, palmSide, type Hand } from './handTracking'
 import { useI18n } from '../../../../i18n'
 
@@ -148,25 +147,17 @@ export default function DirectionHandInput({ onSubmit, disabled, onPause }: Prop
     }
   }, [attempt])
 
-  // no camera: answer with the arrow buttons instead, at the bottom of the tall footer
   if (status === 'denied') {
     return (
-      <div className="flex h-full flex-col justify-end">
-        <div className="px-4">
-          <Button
-            variant="primary"
-            disabled={disabled}
-            className="w-full"
-            onClick={() => {
-              setStatus('loading')
-              setAttempt((a) => a + 1)
-            }}
-          >
-            {t('hand.allow')}
-          </Button>
-        </div>
-        <DirectionArrowInput onSubmit={onSubmit} disabled={disabled} />
-      </div>
+      <InputFallback
+        onSubmit={onSubmit}
+        disabled={disabled}
+        allowLabel={t('hand.allow')}
+        onAllow={() => {
+          setStatus('loading')
+          setAttempt((a) => a + 1)
+        }}
+      />
     )
   }
 

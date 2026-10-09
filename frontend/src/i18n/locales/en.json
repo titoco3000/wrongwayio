@@ -43,6 +43,11 @@
   "hand.hint": "Raise the requested hand",
   "hand.loading": "Starting the camera…",
   "hand.allow": "Allow camera access for the full experience",
+  "speech.hint": "Say {left} or {right}",
+  "speech.loading": "Starting the microphone…",
+  "speech.allow": "Allow microphone access for the full experience",
+  "speech.aliases.left": "lift,loft,let,lest",
+  "speech.aliases.right": "write,ride,rite",
   "keyboard.backspace": "Backspace",
   "view.topDown": "Top-down view",
 
@@ -74,6 +79,8 @@
   "game.audioArrow": "Audio, arrow buttons",
   "game.audioSwipe": "Audio, swipe",
   "game.audioHand": "Audio, raise hand",
+  "game.arrowSpeech": "Arrow, speak",
+  "game.swipeSpeech": "Swipe, speak",
   "game.audioDrive": "Audio, drive",
   "game.drive": "Drive",
 

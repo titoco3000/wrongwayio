@@ -51,13 +51,19 @@ help:
 	@echo "make build [stage]   production build into dist/"
 	@echo "make deploy [stage]  build + sync to S3 + invalidate CloudFront (dev, prod)"
 	@echo "make preview [stage] build, then serve dist/ locally"
+	@echo "make models          download the offline speech models (run once; needed for the speech games)"
 	@echo "make test | clean"
 
 .PHONY: init
 init:
 	@command -v $(BUN) >/dev/null || { echo "bun not found: https://bun.sh"; exit 1; }
 	$(BUN) install
+	./scripts/download-speech-models.sh
 	@echo "frontend ready."
+
+.PHONY: models
+models:
+	./scripts/download-speech-models.sh
 
 .PHONY: run
 run:

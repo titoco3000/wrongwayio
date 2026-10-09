@@ -6,7 +6,7 @@
 import { isNative } from './platform'
 import { WebCamera, type Camera } from './camera'
 import { WebNotifications, type Notifications } from './notifications'
-import { WebSpeech, type Speech } from './speech'
+import { VoskSpeech, type Speech } from './speech'
 
 export type Native = { notifications: Notifications; camera: Camera; speech: Speech }
 
@@ -14,7 +14,7 @@ export type Native = { notifications: Notifications; camera: Camera; speech: Spe
 const webImplementations = (): Native => ({
   notifications: new WebNotifications(),
   camera: new WebCamera(),
-  speech: new WebSpeech(),
+  speech: new VoskSpeech(),
 })
 
 /** Picks implementations for the platform. `native` is true in the Capacitor shell. */

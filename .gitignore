@@ -15,3 +15,17 @@ backend/.env.*
 frontend/.env.*
 !frontend/.env.example
 backend/.dynamodb/
+
+# claude trash
+.claude
+.bash_profile 
+.bashrc 
+.gitconfig 
+.gitmodules 
+.mcp.json 
+.idea 
+.profile 
+.ripgreprc 
+.vscode 
+.zprofile 
+.zshrc
