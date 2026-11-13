@@ -128,11 +128,16 @@ export default function DirectionSwipeInput({ onSubmit, disabled }: Props) {
     }
     frame = requestAnimationFrame(draw)
 
-    // the browser must not scroll or select text while swiping
-    const { touchAction, userSelect } = document.body.style
-    document.body.style.touchAction = 'none'
-    document.body.style.userSelect = 'none'
+    // The browser must not scroll, zoom or select text while swiping: if it starts a pan it fires pointercancel
+    // and the swipe dies mid-gesture. `touch-action` on the body alone doesn't reach past the page's scroll
+    // container, so the `swiping` class (index.css) sets it on every element; touchmove's preventDefault is the
+    // fallback for WebViews that ignore it.
+    document.documentElement.classList.add('swiping')
+    const blockTouch = (e: TouchEvent) => {
+      if (gesture && gesture.upAt === null && e.cancelable) e.preventDefault()
+    }
 
+    document.addEventListener('touchmove', blockTouch, { passive: false })
     document.addEventListener('pointerdown', onDown)
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
@@ -145,8 +150,8 @@ export default function DirectionSwipeInput({ onSubmit, disabled }: Props) {
       window.removeEventListener('pointerup', onUp)
       window.removeEventListener('pointercancel', onCancel)
       window.removeEventListener('resize', resize)
-      document.body.style.touchAction = touchAction
-      document.body.style.userSelect = userSelect
+      document.removeEventListener('touchmove', blockTouch)
+      document.documentElement.classList.remove('swiping')
     }
   }, [])
 
