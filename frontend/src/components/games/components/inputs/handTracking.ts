@@ -26,17 +26,13 @@ async function createRecognizer(): Promise<GestureRecognizer> {
   requireWebGL()
   const { FilesetResolver, GestureRecognizer } = await import('@mediapipe/tasks-vision')
   const fileset = await FilesetResolver.forVisionTasks('/mediapipe/wasm')
-  const make = (delegate: 'GPU' | 'CPU') =>
-    GestureRecognizer.createFromOptions(fileset, {
-      baseOptions: { modelAssetPath: '/mediapipe/gesture_recognizer.task', delegate },
-      runningMode: 'VIDEO',
-      numHands: 2,
-    })
-  try {
-    return await make('GPU')
-  } catch {
-    return make('CPU')
-  }
+  // CPU, not GPU: on some phones (seen on a Galaxy S25, Chrome 156) the GPU delegate starts fine but never
+  // finds a hand, while CPU on the same frames does. CPU is fast enough there (~40 ms a frame).
+  return GestureRecognizer.createFromOptions(fileset, {
+    baseOptions: { modelAssetPath: '/mediapipe/gesture_recognizer.task', delegate: 'CPU' },
+    runningMode: 'VIDEO',
+    numHands: 2,
+  })
 }
 
 async function start(): Promise<OpenSession> {
