@@ -19,7 +19,7 @@ output "region" {
 }
 
 output "backend_env_file" {
-  description = "Paste this into backend/.env.<stage>."
+  description = "Contents of backend/.env.<stage> (make output writes it)."
   value       = <<-EOT
     LAMBDA_FUNCTION_NAME=${aws_lambda_function.api.function_name}
     API_URL=${aws_apigatewayv2_stage.default.invoke_url}
@@ -39,15 +39,15 @@ output "frontend_distribution_id" {
 
 output "frontend_url" {
   description = "Public URL of the website."
-  value       = "https://${aws_cloudfront_distribution.frontend.domain_name}"
+  value       = local.frontend_url
 }
 
 output "frontend_env_file" {
-  description = "Paste this into frontend/.env.<stage>."
+  description = "Contents of frontend/.env.<stage> (make output writes it)."
   value       = <<-EOT
     API_URL=${aws_apigatewayv2_stage.default.invoke_url}
     FRONTEND_BUCKET=${aws_s3_bucket.frontend.bucket}
     FRONTEND_DISTRIBUTION_ID=${aws_cloudfront_distribution.frontend.id}
-    FRONTEND_URL=https://${aws_cloudfront_distribution.frontend.domain_name}
+    FRONTEND_URL=${local.frontend_url}
   EOT
 }

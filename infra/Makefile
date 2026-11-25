@@ -26,7 +26,7 @@ define REQUIRE_ENV
 endef
 
 define REQUIRE_INIT
-@test -d .terraform || { echo "error: uninitialized -- run 'make init' first"; exit 1; }
+@test -d .terraform || { echo "error: uninitialized -- run 'make install' first"; exit 1; }
 endef
 
 define SELECT_WS
@@ -35,15 +35,15 @@ endef
 
 .PHONY: help
 help:
-	@echo "make init             check terraform, run 'terraform init'"
+	@echo "make install          check terraform + aws, terraform init, fmt check, validate"
 	@echo "make plan [stage]     show planned changes"
 	@echo "make deploy [stage]   apply the stack, then print backend env values"
-	@echo "make output [stage]   print outputs to copy into backend/ and frontend/ .env.<stage>"
+	@echo "make output [stage]   print outputs, write backend/ and frontend/ .env.<stage> (deploy does this)"
 	@echo "make destroy [stage]  tear the stage down (asks for confirmation)"
 	@echo "stages: dev, prod"
 
-.PHONY: init
-init:
+.PHONY: install
+install:
 	$(REQUIRE_ENV)
 	@command -v terraform >/dev/null || { \
 	  echo "terraform not found -- install it: https://developer.hashicorp.com/terraform/install"; exit 1; }
@@ -75,16 +75,14 @@ output:
 	$(REQUIRE_INIT)
 	$(SELECT_WS)
 	@terraform output
+	@# temp file + mv: a failed output never clobbers an existing .env
+	@for side in backend frontend; do \
+	  terraform output -raw $${side}_env_file > ../$$side/.env.$(STAGE).tmp \
+	    && mv ../$$side/.env.$(STAGE).tmp ../$$side/.env.$(STAGE) \
+	    || { rm -f ../$$side/.env.$(STAGE).tmp; exit 1; }; \
+	done
 	@echo ""
-	@echo "copy into backend/.env.$(STAGE):"
-	@echo "---8<---"
-	@terraform output -raw backend_env_file
-	@echo "---8<---"
-	@echo ""
-	@echo "copy into frontend/.env.$(STAGE):"
-	@echo "---8<---"
-	@terraform output -raw frontend_env_file
-	@echo "---8<---"
+	@echo "wrote backend/.env.$(STAGE) and frontend/.env.$(STAGE)"
 
 .PHONY: destroy
 destroy:

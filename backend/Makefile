@@ -39,21 +39,21 @@ local dev prod:
 define REQUIRE_ENV_FILE
 @test "$(STAGE)" = local || test -f $(ENV_FILE) || { \
   echo "error: $(ENV_FILE) missing."; \
-  echo "run 'cd ../infra && make output $(STAGE)' and copy the backend block into backend/$(ENV_FILE)"; \
+  echo "run 'make -C ../infra deploy $(STAGE)' (or 'output $(STAGE)' if already deployed) to write it"; \
   exit 1; }
 endef
 
 .PHONY: help
 help:
-	@echo "make init             install toolchain + fetch deps"
-	@echo "make run [stage]      run locally on http://localhost:8003 against the stage'"'"'s DynamoDB table (reloads on edits; WATCH=0 disables)"
+	@echo "make install          install toolchain + fetch deps"
+	@echo "make run [stage]      run locally on http://localhost:8003 against the stage's DynamoDB table (reloads on edits; WATCH=0 disables)"
 	@echo "make db-local          start DynamoDB Local (make run does this)"
 	@echo "make build            cross-compile the lambda zip ($(ARCH))"
 	@echo "make deploy [stage]   build + push code to the stage's lambda"
 	@echo "make test | fmt | lint | clean"
 
-.PHONY: init
-init:
+.PHONY: install
+install:
 	@command -v cargo >/dev/null || { echo "cargo not found: https://rustup.rs"; exit 1; }
 	@command -v cargo-lambda >/dev/null || cargo install cargo-lambda --locked
 	@command -v cargo-watch >/dev/null || cargo install cargo-watch --locked
@@ -85,7 +85,7 @@ run:
 	  if [ "$(WATCH)" = "1" ]; then \
 	    command -v cargo-watch >/dev/null || { \
 	      echo "error: cargo-watch not found (needed for hot reload)."; \
-	      echo "run 'make init', or 'make run WATCH=0' to run once without it."; \
+	      echo "run 'make install', or 'make run WATCH=0' to run once without it."; \
 	      exit 1; }; \
 	    echo "watching -- edits rebuild and restart the server"; \
 	    exec cargo watch $(WATCH_PATHS) --why -x run; \

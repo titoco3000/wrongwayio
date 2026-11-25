@@ -19,14 +19,14 @@ local dev prod:
 
 .PHONY: help
 help:
-	@echo "make init            run 'make init' in backend, frontend, infra"
+	@echo "make install         run 'make install' in backend, frontend, infra"
 	@echo "make fmt             run 'make fmt' in backend, frontend, infra"
 	@echo "make test            backend and frontend tests"
 	@echo "make run [stage]     run backend (local = DynamoDB Local in docker/podman (default), dev, prod) and frontend (local) together, ctrl+c stops both"
 	@echo "make deploy [stage]  deploy backend then frontend to the stage (dev/prod, default dev); infra: 'make -C infra deploy [stage]'"
 
-.PHONY: init fmt
-init fmt:
+.PHONY: install fmt
+install fmt:
 	$(MAKE) -C backend $@
 	$(MAKE) -C frontend $@
 	$(MAKE) -C infra $@

@@ -54,3 +54,20 @@ variable "point_in_time_recovery" {
   type        = bool
   default     = false
 }
+
+variable "domain_name" {
+  description = "Custom domain for the frontend, e.g. wrongwayio.titoco.dev. Empty keeps the *.cloudfront.net address."
+  type        = string
+  default     = ""
+}
+
+variable "hosted_zone_name" {
+  description = "Route53 public hosted zone that domain_name lives in. Required when domain_name is set."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.domain_name == "" || var.hosted_zone_name != ""
+    error_message = "hosted_zone_name must be set when domain_name is set."
+  }
+}

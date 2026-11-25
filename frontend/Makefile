@@ -16,12 +16,12 @@ endif
 ENV_FILE := .env.$(STAGE)
 
 # Resolves VITE_API_URL for the stage: localhost for `local`, else API_URL
-# from frontend/.env.<stage> (the block `make -C infra output <stage>` prints).
+# from frontend/.env.<stage> (written by `make -C infra output <stage>`).
 define API_ENV
 if [ "$(STAGE)" = local ]; then API_URL=http://localhost:8003; \
 else \
   test -f $(ENV_FILE) || { echo "error: $(ENV_FILE) missing."; \
-    echo "run 'cd ../infra && make output $(STAGE)' and copy the frontend block into frontend/$(ENV_FILE)"; exit 1; }; \
+    echo "run 'make -C ../infra deploy $(STAGE)' (or 'output $(STAGE)' if already deployed) to write it"; exit 1; }; \
   . ./$(ENV_FILE); \
 fi; \
 test -n "$$VITE_API_URL$$API_URL" || { echo "error: no API url for stage $(STAGE)"; exit 1; }; \
@@ -29,7 +29,7 @@ export VITE_API_URL="$${VITE_API_URL:-$$API_URL}"
 endef
 
 define REQUIRE_MODULES
-@test -d node_modules || { echo "error: dependencies missing -- run 'make init' first"; exit 1; }
+@test -d node_modules || { echo "error: dependencies missing -- run 'make install' first"; exit 1; }
 endef
 
 # `local` points at localhost; only the deployed stages have infrastructure.
@@ -46,7 +46,7 @@ local dev prod:
 
 .PHONY: help
 help:
-	@echo "make init            install dependencies"
+	@echo "make install         install dependencies + speech models"
 	@echo "make run [stage]     vite dev server (stage: local (default), dev, prod)"
 	@echo "make build [stage]   production build into dist/"
 	@echo "make deploy [stage]  build + sync to S3 + invalidate CloudFront (dev, prod)"
@@ -54,8 +54,8 @@ help:
 	@echo "make models          download the offline speech models (run once; needed for the speech games)"
 	@echo "make test | clean"
 
-.PHONY: init
-init:
+.PHONY: install
+install:
 	@command -v $(BUN) >/dev/null || { echo "bun not found: https://bun.sh"; exit 1; }
 	$(BUN) install
 	./scripts/download-speech-models.sh

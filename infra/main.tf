@@ -26,9 +26,13 @@ data "aws_iam_policy_document" "lambda_assume" {
   }
 }
 
+# The account only lets this user create roles under /app/ that carry the
+# tito-boundary permissions boundary (IAM policy tito-roles).
 resource "aws_iam_role" "lambda" {
-  name               = local.role_name
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
+  name                 = local.role_name
+  path                 = "/app/"
+  permissions_boundary = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/tito-boundary"
+  assume_role_policy   = data.aws_iam_policy_document.lambda_assume.json
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_basic" {

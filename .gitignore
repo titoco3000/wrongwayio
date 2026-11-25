@@ -11,9 +11,6 @@ infra/crash.log
 infra/placeholder/*.zip
 
 # env handoff from `make -C infra output`
-backend/.env.*
-frontend/.env.*
-!frontend/.env.example
 backend/.dynamodb/
 
 # claude trash
