@@ -4,7 +4,7 @@ A joke-app heavily inspired by Duolingo, made for people who cant tell *right* f
 
 It has multiple games to help the user associate both the word to the direction, and the direction to the word.
 
-Available at: https://wrongwayio.titoco.dev/
+**Available at:** https://wrongwayio.titoco.dev/
 
 ## Features
 
